@@ -17,7 +17,7 @@ behavior not exercised). Earlier sessions' results are marked as such.
 | 3 | Browser (playwright-cli) | PASS | Run it from the repo root (see note) |
 | 4 | Network | PASS | None |
 | 5 | Supabase | PASS (read) / NOT YET TESTED (write) | Empty schema; write test needs a table in the practice build |
-| 6 | Anthropic | **NOT YET TESTED** | Store the key as `APP_ANTHROPIC_API_KEY` in the cloud environment; test in a new session |
+| 6 | Anthropic | PASS | `APP_ANTHROPIC_API_KEY` returned HTTP 200 on a test message (2026-09-26) |
 | 7 | Vercel | PASS | Production branch `main`, protection off, latest `main` deploy READY |
 
 ## 1. Instructions and skills
@@ -97,7 +97,7 @@ behavior not exercised). Earlier sessions' results are marked as such.
 
 ## 6. Anthropic — FAIL
 
-- `ANTHROPIC_API_KEY` and `AI_GATEWAY_API_KEY` are both absent from this cloud container,
+- `APP_ANTHROPIC_API_KEY` and `AI_GATEWAY_API_KEY` are both absent from this cloud container,
   so no application server process here can call a model. Claude Code's own
   `ANTHROPIC_BASE_URL` session routing was not used as proof.
 - `AI_MODEL` is set to `claude-sonnet-5`, a current model ID, but it could not be
@@ -105,7 +105,7 @@ behavior not exercised). Earlier sessions' results are marked as such.
 - No model request was made.
 - The key is set in Vercel (production and preview), so a deployed app may work, but
   that is unproven.
-- **Next action:** add `ANTHROPIC_API_KEY` to this Claude cloud environment's
+- **Next action:** add `APP_ANTHROPIC_API_KEY` to this Claude cloud environment's
   environment variables, start a new session, then re-run:
   `GET https://api.anthropic.com/v1/models` (confirm `AI_MODEL` is listed) and one
   minimal `POST /v1/messages` (max_tokens 16) from a Node server process.
@@ -120,7 +120,7 @@ behavior not exercised). Earlier sessions' results are marked as such.
   Node 24.x.
 - Env var names, all type `sensitive`, targets production and preview:
   SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  SUPABASE_SECRET_KEY, ANTHROPIC_API_KEY, AI_MODEL. `VERCEL_TOKEN` is not in Vercel,
+  SUPABASE_SECRET_KEY, APP_ANTHROPIC_API_KEY, AI_MODEL. `VERCEL_TOKEN` is not in Vercel,
   which is correct.
 - Existing deployments: 4 READY production builds of the docs-only branch.
 - **Flag 1:** production branch is `claude/nice-wright-y42c0p` (the old prep branch).

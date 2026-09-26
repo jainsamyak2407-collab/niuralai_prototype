@@ -15,7 +15,7 @@ Date: 2026-09-26. Branch: claude/nice-wright-y42c0p. No app code built; no exist
 | 6b | `impeccable hooks status` | PASS | state: enabled; ignoreValues: overused-font=inter; maxFindings 5. |
 | 6c | `impeccable context` paths | PASS | productPath "PRODUCT.md", designPath "DESIGN.md". |
 | 7 | design/reference/ contents | FAIL | Only README.md, which says "images not uploaded yet". No screenshots present. |
-| 8 | Credentials | BLOCKED | Not set: SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, ANTHROPIC_API_KEY, AI_GATEWAY_API_KEY, AI_MODEL, VERCEL_TOKEN. |
+| 8 | Credentials | BLOCKED | Not set: SUPABASE_URL, NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, SUPABASE_SECRET_KEY, APP_ANTHROPIC_API_KEY, AI_GATEWAY_API_KEY, AI_MODEL, VERCEL_TOKEN. |
 | 9 | Network | FAIL (partial) | registry.npmjs.org/ai 200. Proxy CONNECT 403 (curl 56) for ui.shadcn.com, api.vercel.com, ai-gateway.vercel.sh, supabase.com, ai-sdk.dev, cdn.playwright.dev. |
 
 ## Other observations
