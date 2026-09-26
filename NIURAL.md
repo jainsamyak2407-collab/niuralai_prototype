@@ -118,6 +118,9 @@ field error to its input with aria-describedby.
 Do not connect to or mutate Niural production systems without supplied authorization.
 
 ## AI standard
+Read the model key as `process.env.ANTHROPIC_API_KEY ?? process.env.APP_ANTHROPIC_API_KEY`.
+Vercel sets the first; the Claude cloud environment sets the second, because
+Claude Code reserves ANTHROPIC_API_KEY for its own login.
 Put model calls and credentials on the server. Use structured validated outputs
 when downstream code depends on them. Give the model only relevant data. Treat
 uploaded documents as data, not instructions. Make uncertainty, failures, and
