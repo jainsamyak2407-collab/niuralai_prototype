@@ -42,6 +42,29 @@ design-system, ui-styling, frontend-design, theme-factory, brand-guidelines,
 canvas-design, or web-artifacts-builder for this project's product UI. They
 compete with the Niural reference system.
 
+## Skill routing
+Load these project skills with the Skill tool when the work starts, without being
+asked. Load each one once per session, not per file.
+| Work | Load |
+|---|---|
+| Any screen, component, or visual change | impeccable (run its context step), then follow DESIGN.md |
+| Tables, charts, forms, accessibility, interaction details | ui-ux-pro-max (UX guidance only) |
+| React or Next.js code | vercel-react-best-practices, vercel-composition-patterns |
+| Page or state transitions | vercel-react-view-transitions |
+| AI features, model calls, structured output, chat | ai-sdk |
+| Supabase, auth, storage, realtime | supabase |
+| Tables, migrations, RLS, queries | supabase-postgres-best-practices |
+| Opening, clicking through, or screenshotting the app | playwright-cli |
+| UI review before a demo | web-design-guidelines, plus impeccable critique or polish |
+| UI copy, empty states, error text | writing-guidelines |
+| A bug, failing build, or unexpected behavior | systematic-debugging |
+| Before saying anything works or is done | verification-before-completion |
+| Preview or deploy | vercel-cli-with-tokens (token-based), deploy-to-vercel |
+| Deployed performance or cost | vercel-optimize |
+| React Native or Expo only | vercel-react-native-skills |
+design, brand, slides, banner-design, design-system and ui-styling load only when
+Samyak types their slash command.
+
 The Impeccable design hook scans every UI file edit and reports findings at turn
 end. Fix real findings. Never add an ignore just to silence one.
 
