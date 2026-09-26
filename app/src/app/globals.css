@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+/* Niural tokens. Values and evidence levels come from DESIGN.md. */
+:root {
+  --primary: #714dff;
+  --primary-strong: #5226ff;
+  --primary-soft: #e3ddff;
+  --tint-4: #f1ecff;
+  --backdrop: #a78bff;
+  --text: #141417;
+  --text-muted: #615e6e;
+  --surface: #ffffff;
+  --fill: #f4f4f5;
+  --border: #e5e7eb;
+  --divider: #e3e3e3;
+  --success: #00c950;
+  --success-text: #32a06e;
+  --info: #3f85f5;
+  --warning: #f0b100;
+  --warning-text: #cb7b00;
+  --warning-bg: #fef9c2;
+  --error: #f51023;
+  --delta-text: #ce292e;
+  --delta-bg: #feebec;
+  --accent-pink: #e151ff;
+  --sidebar-top: #e5deff;
+  --sidebar-mid: #f1efff;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-tint-4: var(--tint-4);
+  --color-backdrop: var(--backdrop);
+  --color-ink: var(--text);
+  --color-muted: var(--text-muted);
+  --color-surface: var(--surface);
+  --color-fill: var(--fill);
+  --color-line: var(--border);
+  --color-divider: var(--divider);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-info: var(--info);
+  --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-warning-bg: var(--warning-bg);
+  --color-error: var(--error);
+  --color-delta: var(--delta-text);
+  --color-delta-bg: var(--delta-bg);
+  --color-accent-pink: var(--accent-pink);
+  --color-sidebar-top: var(--sidebar-top);
+  --color-sidebar-mid: var(--sidebar-mid);
+}
+
+body {
+  background: var(--backdrop);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sheet-in { animation: sheet-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+  @keyframes sheet-in { from { transform: translateX(24px); } }
+}
