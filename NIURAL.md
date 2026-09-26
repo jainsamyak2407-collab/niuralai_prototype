@@ -28,6 +28,14 @@ pill, section cards with a header row, #F4F4F5 table header, white status
 pills with a dot, right-side review sheet with a scrim, toast confirmation,
 currency code before amounts. Keep that design language for every screen.
 
+## Buttons and live link
+- Every visible button, link, nav item and control works and serves the
+  product goal. Do not add decorative or placeholder controls, and do not
+  label anything "not in this demo". Build only what has a real use.
+- Samyak names any future-scope items himself. Add those only when he asks.
+- Keep a live Vercel link working throughout the build and share it after
+  each working step. Click through the live link before calling anything done.
+
 ## Preparation and build
 Preparation means tools, source research, generic operating rules, and reference
 analysis. Do not implement the actual case before the live BUILD instruction.
