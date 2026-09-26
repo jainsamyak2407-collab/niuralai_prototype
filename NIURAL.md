@@ -97,6 +97,10 @@ consistent. Use synthetic information. Label simulated integrations and AI outpu
 Use server-side validation and explicit business logic for consequential decisions.
 Use currency-aware arithmetic; do not hardcode two decimal places for every currency.
 Prevent duplicate consequential actions and record relevant state changes.
+Forms keep the user's valid input after a validation or server error. Every schema
+error maps to plain language, never raw validator text. Server action and API
+failures show an inline, retryable error; they never replace the page. Link each
+field error to its input with aria-describedby.
 Do not connect to or mutate Niural production systems without supplied authorization.
 
 ## AI standard

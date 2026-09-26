@@ -16,6 +16,7 @@ Status terms: **Installed** (files present), **Configured** (settings written),
 | Browser automation | Tested | Launch, click, fill, reload, screenshot at 1440x900 against a practice app |
 | Next.js scaffold, build, Google font | Tested | create-next-app, `npm run build`, next/font Inter all worked |
 | Practice workflow (unrelated equipment reservation, outside repo) | Tested | Server-side validation, save, survives refresh, double booking refused, no console errors |
+| Verifier agent catches defects | Tested | On the practice app it caught the planted raw validation message, plus a server error that replaced the whole page and a form that cleared valid input. Those rules are now in NIURAL.md |
 | Reference screenshots | Blocked | design/reference/ holds only README.md |
 | Setup script | Blocked | Fresh session started without playwright-cli; the saved script fails or is missing |
 | shadcn component registry | Blocked | ui.shadcn.com denied by network policy (CONNECT 403) |
