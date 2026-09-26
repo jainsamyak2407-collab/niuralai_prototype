@@ -17,8 +17,8 @@ behavior not exercised). Earlier sessions' results are marked as such.
 | 3 | Browser (playwright-cli) | PASS | Run it from the repo root (see note) |
 | 4 | Network | PASS | None |
 | 5 | Supabase | PASS (read) / NOT YET TESTED (write) | Empty schema; write test needs a table in the practice build |
-| 6 | Anthropic | **FAIL** | `ANTHROPIC_API_KEY` is not in this cloud environment |
-| 7 | Vercel | PASS, with two flags | Change production branch; plan for preview protection |
+| 6 | Anthropic | **NOT YET TESTED** | Store the key as `APP_ANTHROPIC_API_KEY` in the cloud environment; test in a new session |
+| 7 | Vercel | PASS | Production branch `main`, protection off, latest `main` deploy READY |
 
 ## 1. Instructions and skills
 
@@ -139,3 +139,9 @@ behavior not exercised). Earlier sessions' results are marked as such.
 - Any model call, local or deployed.
 - A working preview URL opened from your laptop.
 - The Impeccable hook firing on a real UI edit.
+
+## Re-check (same session, after setup changes)
+- GitHub: default branch `main`; it is the only branch.
+- Vercel: production branch `main`, deployment protection off, latest deploy of `main` READY.
+- Supabase REST 200, browser screenshot OK, api.anthropic.com reachable.
+- `APP_ANTHROPIC_API_KEY` not visible: environment variables load only at session start.
