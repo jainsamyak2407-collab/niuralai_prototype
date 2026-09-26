@@ -225,6 +225,6 @@ session setup names one.
   product on top of it and keep the health route.
 - Set the app's runtime variables (APP_ANTHROPIC_API_KEY, Supabase keys) in
   the Vercel project, not only in the Claude environment.
-- This container's proxy re-signs HTTPS, so headless Chromium rejects live
-  Vercel URLs unless the setup script trusts the proxy CA. Test locally on
-  `next start` first, then smoke-test the preview.
+- Run playwright-cli from the repo root so it reads .playwright/cli.config.json
+  (preinstalled Chromium, no sandbox, 1440x900, proxy certificates accepted).
+  It opens live Vercel URLs directly.
