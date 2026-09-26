@@ -203,7 +203,8 @@ three short lines. Track major assumptions and actual limitations. Do not narrat
 every file edit. Honor interviewer changes and keep Samyak able to explain the work.
 
 ## Git
-`main` is the only branch. Every session starts from `main`, commits to `main`,
+`main` is the only branch. A SessionStart hook (.claude/hooks/use-main.sh)
+switches cloud sessions off their generated claude/* branch. Every session starts from `main`, commits to `main`,
 and pushes to `main`. Do not create session or feature branches, even if the
 session setup names one.
 
@@ -214,6 +215,15 @@ session setup names one.
   static-export `vercel.json`; it breaks API routes and server actions.
 - Deploy from the CLI with `vercel deploy --token "$VERCEL_TOKEN"` using
   `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`, so a preview exists without a push.
+  Run it from a copy without `.git`: the Hobby plan blocks CLI deploys whose
+  commit author (Claude) is not on the Vercel team. Pushes to GitHub are not
+  blocked. Example:
+  `D=$(mktemp -d); git archive HEAD | tar -x -C "$D"; (cd "$D" && vercel deploy --token "$VERCEL_TOKEN" --yes)`
+- Previews sit behind Vercel login. Check them with `vercel curl <path>
+  --deployment <url>` after writing the token to
+  `~/.local/share/com.vercel.cli/auth.json` as `{"token":"..."}`.
+- Until `app/` exists on `main`, pushes to `main` fail with "Root Directory
+  app does not exist". That is expected and clears with the first build.
 - Set the app's runtime variables (APP_ANTHROPIC_API_KEY, Supabase keys) in
   the Vercel project, not only in the Claude environment.
 - This container's proxy re-signs HTTPS, so headless Chromium rejects live
