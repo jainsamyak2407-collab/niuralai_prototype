@@ -16,9 +16,9 @@ the remaining time. Avoid inventing a predetermined payroll case.
 
 ## Design authority
 Read DESIGN.md and inspect the application screenshots it cites before any UI
-implementation: design/reference/4.png (All Entities) and design/reference/5.png
-(entity detail). design/reference/README.md says which images are promotional and
-must not be copied.
+implementation. Start with design/reference/app/ (sharp app screens from niural.com),
+then 4.png and 5.png. design/reference/README.md lists which images are website or
+promotional material and must not be copied into product screens.
 The supplied application references outrank generic aesthetic preferences. Treat
 this as an extension to an existing product identity. Use Impeccable in Operate mode.
 Maintain a reusable token and component system. Do not substitute an unrelated
@@ -44,18 +44,24 @@ end. Fix real findings. Never add an ignore just to silence one.
 
 ## Niural UI standard
 Every screen, including the first draft, follows DESIGN.md without a second prompt:
-- Shell: compact white top bar (logo, organization switcher, icon-labeled nav,
-  utilities on the right), lavender section sidebar with uppercase group labels
-  and a white selected pill, a page header strip, and content on #FAFAFA.
-- Density: operational, not marketing. Use tables, label/value grids, and
-  actionable list cards like the entity cards in 4.png. No hero sections,
-  greeting banners, or decorative summary tiles.
-- Components: one button shape, one control height, one badge style, one table
-  rhythm. Purple only for primary action, selection, focus, and active state.
-- Type: one sans family, 12/14/16/22 scale, 400/500/600 weights, tabular figures.
+- Shell: white top bar (logo, icon-labeled module nav with a soft purple active
+  pill, wallet chip, AI pill button, round icon buttons, avatar), a thin #A78BFF
+  strip, then a white rounded workspace. Module sidebar on the lavender-to-white
+  gradient with uppercase group labels and a white selected pill.
+- Density: operational, not marketing. Full-width tables with a #F4F4F5 header,
+  label/value grids, section cards with a header row, and actionable list cards.
+  No hero sections, greeting banners, or decorative summary tiles.
+- Components: Niural's button family (primary #714DFF, gray secondary with purple
+  text, outline, red outline destructive), 8px control radius, white status pills
+  with a colored dot or icon, one table rhythm with a pagination footer.
+  Purple only for primary action, selection, links, and focus.
+- Type: Inter (provisional match), headings medium not bold, 12/14/16/18-20 app
+  scale, tabular figures, currency code before amounts.
 - Spacing: 4px basis. Consistent gutters. Left-aligned content.
 - States: loading skeletons, useful empty states, inline validation, error
   recovery, and a visible completed state for every primary action.
+- AI features follow DESIGN.md's AI patterns: a docked right panel, structured
+  answer cards, Smart Actions, and a visible undo for AI-applied changes.
 Tokens live in one place (global CSS variables mapped into Tailwind). Components
 use semantic tokens, never scattered hex values.
 

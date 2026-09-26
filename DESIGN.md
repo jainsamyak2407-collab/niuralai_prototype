@@ -1,173 +1,277 @@
-# Niural application reference system
+# Niural design system (reference for builds)
 
-Status: reconciled against the supplied screenshots. This is not Niural's official
-design system. Surface mode: Operate. Preserve the incumbent application language.
-
-## Sources
-Visual source of truth, in priority order:
-1. [design/reference/4.png](design/reference/4.png): Settings > All Entities (application UI)
-2. [design/reference/5.png](design/reference/5.png): Entity detail, Overview tab (application UI)
-
-Secondary evidence, never a layout source:
-- [design/reference/3.png](design/reference/3.png): promotional payroll cards. Use only for status vocabulary.
-- [design/reference/1.png](design/reference/1.png): promotional report cards. Use only for report names.
-- [design/reference/2.png](design/reference/2.png): video overlay. Exclude entirely.
-
-See [design/reference/README.md](design/reference/README.md) for the index. It also
-lists the guide's screenshots that were not received, including the only table reference.
+Status: built from Niural's public brand guideline, the live website's CSS and
+rendered pages (34 pages crawled 2026-09-26), and full-size app screenshots
+published on niural.com. This is not Niural's internal design file.
+Surface mode for product builds: **Operate**. The product is a calm,
+data-dense finance and HR tool. Purple marks action and selection.
 
 ## Evidence levels
-- **Observed**: visible in 4.png or 5.png (structure, labels, order, presence).
-- **Measured**: pixel-sampled from 4.png or 5.png. These screenshots are downscaled and
-  compressed, so a measured value is close but not a proven CSS token.
-- **Estimate**: chosen to fit the screenshots. Replace it when better evidence arrives.
-Never describe a measured or estimated value as exact.
+- **Verified**: declared in Niural's CSS or brand guideline, or rendered by the browser
+  from CSS (exact values).
+- **Measured**: sampled from sharp app PNGs on niural.com. Very close, but it is a raster
+  image, not a token.
+- **Observed**: structure or behavior visible in screenshots.
+- **Estimate**: chosen to fit. Replace it when better evidence arrives.
 
-## Authority
-Use supplied official tokens or verified computed styles from a real Niural page
-first. Otherwise use the values below consistently, and refine them by comparing
-screenshots. Keep this file's evidence labels up to date.
+## Sources
+Application UI (primary; use for every product build):
+
+| File | Shows |
+|---|---|
+| [app/payroll-home.png](design/reference/app/payroll-home.png) | Payments > Payroll: upcoming payroll card, secondary and destructive buttons, tag, deadline text |
+| [app/salary-updates.png](design/reference/app/salary-updates.png) | Data table with filters, flags, currency amounts, delta badge, status badges, row actions, pagination |
+| [app/contracts.png](design/reference/app/contracts.png) | People > Manage: segmented tabs, toolbar, "+ New Contract", warning status, avatars, kebab menu |
+| [app/benefits.png](design/reference/app/benefits.png) | Underline tabs, yellow warning banner, grouped table, provider chips, "View" buttons |
+| [app/hire-worker-type.png](design/reference/app/hire-worker-type.png) | Form with selectable option cards and a select field |
+| [app/wallet.png](design/reference/app/wallet.png) | Wallet: green balance card, info banner, transactions table, link actions |
+| [app/ai-assistant-panel.png](design/reference/app/ai-assistant-panel.png) | "Niural AI" docked chat panel beside a table (frame from the site's Meet Emma video) |
+| [4.png](design/reference/4.png), [5.png](design/reference/5.png) | Settings > All Entities card grid, and the entity detail with tabs and label/value grid (video frames) |
+
+Brand and website (secondary; use for marketing surfaces and brand decisions):
+- [site/brand-colors-typography.png](design/reference/site/brand-colors-typography.png): official palette and type samples from niural.com/brand
+- [site/](design/reference/site/): home, product, pricing, blog, and tool pages at 1440x900
+
+Promotional (vocabulary only, never a layout source): [1.png](design/reference/1.png) and
+[3.png](design/reference/3.png). Excluded entirely: [2.png](design/reference/2.png).
+
+## Design philosophy
+Drawn from the brand guideline and consistent across the site and app:
+- **Clean, modern, approachable.** Simple and legible, with no ornament. The tool should
+  disappear into the task.
+- **Purple dominates, but sparingly in the UI.** Niural Purple marks primary actions,
+  current selection, links and highlights. Neutrals (white, gray) carry text and
+  surfaces. Do not introduce colors outside the palette.
+- **Trust for money and HR.** Plain numbers, explicit currencies, clear status, and
+  visible deadlines. Payroll warnings are specific and dated.
+- **Confident, helpful voice.** Clear, down-to-earth, active sentences. No jargon, slang
+  or gimmicks. Niural speaks as a helpful co-pilot: "Please confirm salary adjustments
+  by the cut-off date."
+- **AI is a co-pilot inside the workflow.** It is not a separate product surface (see AI patterns).
+- **Consistency.** One icon style (line icons, uniform stroke), one button family, one
+  table rhythm across every module.
 
 ## Color
-| Token | Value | Evidence | Where seen |
-|---|---|---|---|
-| canvas | #FAFAFA | Measured (4.png between cards, 5.png page) | Content background behind cards |
-| surface | #FFFFFF | Measured | Cards, inputs, selected sidebar item, detail card |
-| topbar | #FFFFFF | Estimate (measured #FBFBFB, likely compression) | Top navigation bar |
-| sidebar | vertical gradient #EBE4FF (top) to #F6F3FF (bottom) | Measured | Settings sidebar. A flat #F0ECFF is an acceptable approximation |
-| primary | #7550FF | Measured (most frequent pixel in the Add Entity button) | Primary button, active tab underline, AI entry icon |
-| border | #E8E8E8 | Measured range #E7E7E7 to #EAEAEA (1px edge) | Card and input borders |
-| divider | #E4E4E4 | Measured range #E0E0E0 to #E8E8E8 | Under the tabs and the page header |
-| text | #111111 | Measured darkest pixels #0E0E0E to #111111. The true value may be pure black | Headings, names, values, labels |
-| text-muted | #7E7E7E | Measured | Addresses, location line, secondary text |
-| sidebar-label | #88819C | Measured, violet-gray | Uppercase section labels on the lavender sidebar |
-| success | green, value unverified | Observed (Verified check, HQ pill, payroll amounts in 3.png) | Verified, Paid, positive amounts |
-| warning / error | values unverified | Not seen in the app screens | Use accessible amber and red with an icon and label |
+### Brand (verified: brand guideline and CSS `--brand-primary`)
+| Token | Value | Use |
+|---|---|---|
+| primary | **#714DFF** (Niural Purple, PANTONE 2725 C) | Primary buttons, links, active tab underline, focus, selected text |
+| primary-strong | #5226FF (measured #5022FF to #5A2EFF) | Selected nav and sidebar text and icons, secondary-button text |
+| primary-soft | #E3DDFF (measured) | Selected top-nav pill background |
+| tint-1..4 | #A080FF, #BCA6FF, #D5C9FF, #F1ECFF (verified swatches) | Hover fills, soft backgrounds, charts |
+| app-backdrop | #A78BFF (measured) | The purple strip between the top bar and the workspace |
+| accent-pink | #E151FF (Niural Pink, verified) | Rare accent only. The announcement bar gradient and AI sparkle. Never for UI states |
 
-The purple band around 4.png and 5.png (about #AD96FF) is a presentation frame, not
-app UI. Check text contrast against the real background. Legibility beats matching a sample.
+The brand page lists Pink's RGB as 255, 81, 255 (#FF51FF). That conflicts with its hex,
+and the rendered swatch is #E151FF, so use #E151FF.
+
+### Neutrals
+| Token | Value | Evidence |
+|---|---|---|
+| text | #141417 | Verified CSS `--primary`. App measured #161618 |
+| text-secondary | rgba(14,11,11,0.65) | Verified CSS `--secondary` |
+| text-muted | #615E6E | Verified CSS `--muted` (the site's most common text color) |
+| text-subtle | #616161 | Verified CSS |
+| surface | #FFFFFF | Workspace, cards, inputs, top bar |
+| canvas | #FAFAFA | Verified CSS gray-3. Grid pages such as All Entities |
+| page-bg (site) | #F7F7F8 | Verified CSS gray-2 |
+| fill | #F4F4F5 | Verified. Table header, secondary button, tag, search `/` key |
+| segment-fill | #EBEBEB | Measured. Selected segmented tab |
+| border | #E5E7EB | Verified CSS. App card edges measured #DBDBDB to #E0E0E4 |
+| divider | #E3E3E3 | Measured. Table rows and card headers |
+| neutral dark | #18181B, #27272A, #3F3F46, #52525B | Verified brand swatches. Dark surfaces only |
+
+### Sidebar
+A vertical gradient from #E5DEFF at the top to #F1EFFF in the middle to #FFFFFF at the
+bottom (measured on sharp app images). The selected item is a white pill with a 1px
+lavender border (about #E1DAFF) and primary-strong text and icon.
+
+### Semantic (verified CSS tokens or measured app pixels)
+| Meaning | Colors | Where |
+|---|---|---|
+| Success | dot #00C950. Wallet green #0BC15A (verified `--wallet-primary`). Text #32A06E | "Reviewed", "Enrollment Live", selected option card border, positive money |
+| Info | #3F85F5 (verified blue-11) | Info dot, info banner icon |
+| Warning | icon #F0B100. Banner #FEF9C2. Deadline text #CB7B00 | "Onboarding", "Processing", "In Review", enrollment banner, "Deadline: Nov 10" |
+| Error / negative | text #F51023 (verified red-11). Negative amount #FB303B. Delta badge text #CE292E on #FEEBEC | Destructive outline button, "- USD 570.53", "↓ 12.8%" |
+
+Status always pairs color with a dot or icon and a text label.
 
 ## Typography
-- **Family: unverified.** The UI uses a clean neo-grotesque sans. Inter is a
-  provisional implementation choice with a system sans fallback. Never claim it
-  matches. The marketing site's font declarations are not evidence for the app.
-- **Observed hierarchy**:
-  - Page title ("All Entities") is semibold and larger than body text.
-  - Entity name in the detail header ("Nexus Corp") is the largest text on screen.
-  - Section title ("Company Information") is semibold.
-  - Card title ("Nexus UK Ltd.") is semibold, with a muted address line below it.
-  - Detail fields are a semibold label above a regular value, both dark.
-  - Sidebar section labels are small uppercase muted text (ORGANIZATION, FEATURES,
-    DEVELOPER, ADMINISTRATION).
-  - Tabs and nav items use medium weight.
-- **Scale (estimate)**: 12px sidebar labels and metadata, 14px body, labels and
-  values, 16px section and card titles, 20 to 22px page title, 24px entity name in
-  the detail header. Use 400/500/600 weights and tabular figures for numbers.
-- **Data formats observed**: masked IDs ("*******474782"), dates as MM-DD-YYYY
-  ("01-24-2023"), and currency with a symbol and two decimals ("$ 28,043.34").
-  Other currencies still need currency-aware decimals.
+- **Website: verified.** On all 34 crawled pages the loaded fonts were Inter (body, UI,
+  buttons) and Inter Tight (headings). CSS also declares Manrope as `--font-family-primary`,
+  but no page loads it.
+- **Brand guideline** samples: Inter for "Body, Paragraph" and labels, and Switzer for
+  "Title, Display".
+- **App: unverified.** The letterforms in the app screenshots are consistent with Inter,
+  but that is not proven. Use **Inter** for all app UI, and label it as a provisional
+  match. Inter Tight is acceptable for large page titles and marketing headings. Do not
+  add another family.
+- **Website scale (verified computed styles)**:
+  - Hero h1: 48px/600, line height 1.2, Inter Tight
+  - Section h2: 32px/500, line height 1.3
+  - h3/h4: 20px/500, line height 1.5, and 18px/400 at 29px
+  - Body: Inter 16px/24px with -0.32px tracking
+  - Buttons: 16px/400
+- **App scale (measured from roughly 1:1 app images at 1512px wide)**:
+  - Sidebar module title ("Payments"): about 18px/600
+  - Page title ("Payroll", "Salary Updates"): 18 to 20px/500
+  - Card and section title: 16 to 18px/500
+  - Body, table cells, nav, sidebar items: 14px/400 to 500
+  - Table header: 14px/400, darker than muted
+  - Uppercase group labels: 12px/500 with slight tracking
+  - Tags and badges: 12px
+  - Use tabular figures for money and dates.
+- Weights 400/500/600 only. Headings are medium, not bold.
 
-## Layout (observed in 4.png, sizes are estimates)
-- **Top bar, left to right**:
-  - "Niural AI" logo, then an organization switcher ("Nexus Corp Global" with a
-    green "HQ" pill and a chevron).
-  - Primary nav as icon plus label: People, Payments, Niural Pay, Niural Insights,
-    Integrations.
-  - Right side: a wallet balance chip ("$ 28,043.34" with a chevron), an "Ask Emma"
-    AI assistant button with a purple icon, search and settings icon buttons, and
-    an avatar.
-  - The bar is white and compact, about 56px tall.
-- **Section sidebar** (about 200 to 210px):
-  - A bold section title ("Settings"), then grouped items under uppercase labels.
-  - Each item is a line icon plus a label.
-  - The selected item is a white rounded pill with a faint shadow. Other items sit
-    directly on the lavender.
-- **Content**:
-  - A page header strip with the page title and a thin bottom divider.
-  - Below it, a toolbar row: a search input with a leading icon, then an outlined
-    "Sort by" button with an icon, then an outlined square refresh icon button.
-    The primary action ("+ Add Entity") is right-aligned.
-  - Content sits in a centered column with generous side margins at laptop width.
-- **Detail view (5.png)**:
-  - Header: a round logo or avatar, the entity name, and an inline green "Verified"
-    check.
-  - Below it: a flag and a muted "• New York, US" location line.
-  - Then a tab row with a full-width divider, a section title, and a white rounded
-    card holding a 3-column label/value grid with generous row gaps.
-- **Spacing**: 4px basis (4, 8, 12, 16, 24, 32). Card grid gap about 16px. Card
-  padding about 16px. Detail grid row gap about 24px. All estimates.
+## Shape, elevation, spacing (verified CSS unless noted)
+- **Radius scale**: 4, 6, 8, 12, 16, 24px, and full.
+  - Buttons and inputs: 8px (verified on site buttons, measured in the app)
+  - Tags: 4 to 6px
+  - Cards and panels: 10 to 12px
+  - Workspace container: about 16px (measured)
+  - Nav pills, avatars and status chips: fully rounded
+- **Shadows** (Niural's own tokens):
+  - `borders-base`: 0 0 0 1px #00000014, 0 1px 2px #0000001f
+  - `elevation-flyout`: 0 0 0 1px #00000014, 0 4px 8px #00000014, 0 8px 16px #00000014
+  - `elevation-modal`: adds a 0 16px 32px #00000014 layer
+  - App cards mostly use a 1px border with little or no shadow.
+- **Spacing**: 4px base (verified `--spacing: .25rem`). App measurements:
+  - Sidebar padding about 24px
+  - Workspace padding about 24px
+  - Card padding 20 to 24px
+  - Gap between cards about 16px
+  - Table rows about 52 to 56px (dense tables down to 44px)
+  - Controls about 36 to 40px tall in the app. Site buttons are 44px.
 
-## Components
+## App shell (observed on every app image)
+1. **Top bar**, white, about 60px tall. From left to right:
+   - "Niural AI" logo, then a thin vertical divider.
+   - Module nav as icon plus label: People, Payments, Niural Pay, Organization, Niural
+     Insights, Integrations. The active module is a primary-soft pill with
+     primary-strong text.
+   - Right side: a wallet balance chip (outlined pill, green wallet icon, "$ 28,043.34",
+     up/down chevron), then an AI entry button (outlined pill with a purple sparkle,
+     labeled "Niural AI" or "Ask Emma").
+   - Then round outlined icon buttons (search, support or settings), a thin divider,
+     and a round avatar.
+2. **App backdrop**: a thin purple strip (#A78BFF) below the top bar. The white
+   **workspace** panel sits on it with rounded top corners (about 16px) and small side
+   insets.
+3. **Module sidebar**, about 210 to 250px wide, on the lavender gradient:
+   - Module title (18px/600).
+   - Uppercase group labels (MONTHLY SALARY UPDATES, CONFIGURATION, HISTORY, TRACKING,
+     REIMBURSE, CONFIGURATIONS) with line-icon items under each.
+   - Settings and configuration items are pinned to the bottom.
+4. **Content**:
+   - Page title top-left, with an optional primary action top-right (for example
+     "Settings" or "+ New Contract").
+   - Then tabs, the toolbar, and the content.
+   - Content stays left-aligned and fills the width. Tables run edge to edge inside the
+     workspace.
+
+## Components (observed)
 - **Buttons**:
-  - Primary: solid purple, white label, optional leading "+" icon, radius about
-    8px, height about 36px.
-  - Secondary: white with a 1px border and an optional leading icon ("Sort by").
-  - Icon-only: square and outlined (refresh), or bare in the top bar (search,
-    settings).
-- **Inputs**: white, 1px border, radius about 8px, leading search icon,
-  placeholder text ("Search entity").
-- **List cards (4.png)**:
-  - White, 1px light border, radius about 8 to 10px, very soft shadow.
-  - Content: a round flag, a semibold name, a pin icon with a muted address that
-    truncates with an ellipsis, and a "View Details" text action at the bottom left.
-  - Three columns at laptop width.
-  - These are operational list items that lead to a detail view. They are not
-    decorative summary tiles.
-- **Detail card (5.png)**: white, radius about 12px, no visible border on #FAFAFA,
-  label/value grid inside.
+  - Primary: solid #714DFF with white text, 8px radius, optional leading "+" or
+    trailing ">" icon ("Continue Payroll >", "+ New Contract", "Add Benefit").
+  - Secondary: #F4F4F5 fill, 1px border, primary-strong text with a trailing chevron
+    ("Run Bonus Payroll >").
+  - Outline: white with a 1px border and dark text ("Export CSV", "All Status v",
+    "Enrollment Census", "View").
+  - Destructive: white with a red 1px border and red text ("Discard").
+  - Icon buttons: square and outlined in toolbars (refresh), round in the top bar.
+  - Text links: primary color ("View All Transactions", "Refresh" with icon, "Setup
+    benefit enrollment ↗").
+- **Toolbar row**: search input (leading icon, "/" key hint), refresh icon button,
+  then right-aligned filter dropdowns (Status, Type, Hire Date, All Countries), a thin
+  vertical divider, and the primary action.
+- **Tables**:
+  - Header row filled #F4F4F5, 14px regular text, a sort arrow on sortable columns.
+  - Leading checkbox column. Rows separated by 1px dividers, with no zebra striping.
+  - Cells may hold an avatar or flag plus a name. Money shows a muted currency code
+    ("GBP 4,800/ month", "CAD 1,300.00"). Numbers are right-aligned where appropriate.
+  - Status column uses badges. The action column uses icon buttons or a kebab menu.
+  - Footer: "0 of 100 row(s) selected" on the left; "Rows per page [10]", "Page 1 of
+    10" and square first/prev/next/last buttons on the right.
+  - Grouped tables have expandable group rows ("▾ Company Paid Benefits").
+- **Status badges**:
+  - White pill, 1px light border, dark 12 to 13px label, with a leading 6px colored
+    dot (Reviewed = green, Info = blue, In Review = amber, Enrollment Live = green) or
+    a warning triangle ("Onboarding", "Processing").
+  - Delta badge: soft red fill with red text and an arrow ("↓ 12.8%").
+  - Tag: gray fill #F4F4F5, 4 to 6px radius, 12px ("Tax myself", "Primary").
 - **Tabs**:
-  - Text tabs in a row. The active tab has dark text and a purple underline about
-    2px thick. Inactive tabs have dark regular text.
-  - A full-width light divider sits under the row.
-- **Pills and badges**:
-  - Observed in the app: the green "HQ" pill and the green "Verified" check with a
-    label.
-  - Seen only in 3.png, a promotional graphic: white pills with a light border, a
-    leading colored icon, and a short status label ("Awaiting Payment",
-    "Calculating Payroll", "Salary Updates", "Awaiting Approval", "Paid").
-  - Treat that vocabulary and pattern as plausible, not verified.
-- **Icons**: thin line icons (Lucide is an acceptable stand-in), about 16px, in
-  navigation, the sidebar and inline metadata. Country flags appear as round icons.
-- **Tables: not observed.** The Documents & Compliance reference was not received.
-  Until it is, use a plain table: white surface, a 1px border, a muted 12 to 13px
-  header, 44 to 48px rows, thin row dividers, and left-aligned text with
-  right-aligned numbers.
+  - Underline tabs: active is dark text with a 2px #714DFF underline, above a
+    full-width divider ("Company Benefits", "Overview").
+  - Segmented tabs: active is a #EBEBEB filled rounded rectangle, inactive is plain
+    text ("Manage / Directory / Contracts / Org Chart").
+- **Cards**:
+  - White, 1px border, 10 to 12px radius.
+  - A section card has a header row (title plus divider) and body content.
+  - Inner action cards ("Regular Payroll", "Bonus Payroll") use a title, a muted
+    description and a button.
+  - List cards (All Entities): flag, name, muted address and a "View Details" link.
+- **Banners**:
+  - Info: white, 1px border, blue info icon, 14px text, and an optional right-aligned link.
+  - Warning: #FEF9C2 fill, amber triangle, bold lead text and a link.
+  - Context callout: an icon in a round outlined container with a title and a
+    description ("Jan 2025 (Current Pay Period)").
+- **Forms**:
+  - Label above the field, with a red asterisk for required fields.
+  - Select with a chevron, 8px radius, and 36 to 40px height.
+  - Option cards: white bordered cards with an icon, title and description. The
+    selected card gets a #0BC15A green border.
+- **Label/value grid** (detail pages): three columns, label 14px/600 over value 14px/400,
+  with about 24px row gaps.
+- **Money display**: currency code prefix, thousands separators and two decimals where
+  the currency uses them. Negative is red with a leading minus ("- USD 570.53").
+  Balances show large on the green wallet card only.
+- **Icons**: thin line icons at 16 to 20px (Lucide is an acceptable stand-in). Country
+  flags are round. Avatars are round photos or initials on pink (#E151FF-like) for the
+  current user.
 
-## Interaction
-- Use purple for the primary action, the selected tab underline, and
-  focus/active states.
-- In the sidebar, show selection with the white pill, not purple.
-- Keep search, sort, refresh and the primary action on one toolbar row.
-- Use tabs for related detail sections, and keep the entity context in the header.
-- Status always pairs color with an icon and a label.
-- Keep focus visible and keyboard navigation working.
-- Respect reduced motion. Use brief state transitions only.
-- Any AI assistant entry should follow the "Ask Emma" pattern: a secondary button
-  with a purple icon in the top bar. Label AI output as AI-generated.
+## AI patterns (observed in the app images and the Meet Emma video)
+- A top-bar entry: an outlined pill with a purple sparkle, labeled "Niural AI" or "Ask Emma".
+- A **docked right panel** titled "Niural AI" sits beside the working page, not over it.
+  - The user's request appears as a right-aligned outlined pill ("Run payroll for January").
+  - The AI answers in prose, followed by structured cards (for example "Pending
+    Approvals" rows with amber counts such as "34 Reports").
+  - "Smart Actions by Niural AI" offers one-click suggestion cards.
+  - Suggested follow-up questions sit near a "Continue Chatting" input.
+- AI can act on the page. For example it can filter the table, with a red "Clear AI
+  Filter" link to undo it.
+- Long tasks show in a small bottom tray ("Run Payroll in Progress").
+- Label AI output, keep a human approval step for money movement, and show uncertainty.
 
-## Exclusions from the application UI
-Never reproduce any of these as app UI:
-- The purple presentation frame around 4.png and 5.png, video controls, captions
-  such as "Lack", or blurred montage backgrounds.
-- The mock alert cards in 2.png.
-- The glassmorphism, purple glow borders and gradient washes in 1.png.
-- The large purple radial backgrounds, floating tilted cards and hero title in 3.png.
+## Website patterns (use only for marketing or landing surfaces)
+- Announcement bar: a purple-to-pink gradient with white text.
+- Floating nav container: rounded, 1px border, white. "Book a Demo" button.
+- Pages start with an eyebrow chip ("Future of Intelligent Finance is Here"), then a
+  48px Inter Tight headline. The key phrase is sometimes highlighted in Niural Purple
+  ("Calculate the true cost of **Hiring Globally**").
+- Light off-white page, subtle grid or dot textures, and product screenshots on the right.
+- Primary and secondary buttons are both 44px with 8px radius.
+- Pricing uses a dark theme. The AI marketing images use dark glowing 3D cards.
+- Tool pages (runway calculator, cost calculator, compliance calendar) look closest
+  to the app: bordered white cards, labeled inputs, a muted helper line, and
+  result tiles.
 
-Operational screens also get no hero sections, greeting banners, ornamental glass,
-random gradients, or redundant summary tiles.
-
-Do not copy the literal "Sort by {title}" label in 4.png. It looks like an unfilled
-template string in the source. Use a real label such as "Sort by name".
+## Exclusions from application UI
+Never bring any of these into product screens:
+- Marketing heroes, eyebrow chips, gradient announcement bars, grid textures.
+- The dark 3D glow imagery, glassmorphism (1.png), floating tilted cards, or big
+  radial purple backgrounds (3.png).
+- Video controls, captions ("Lack"), or blurred montage content (2.png).
+- The outer lavender border around 4.png and 5.png. It is presentation framing. The thin
+  #A78BFF strip under the top bar is real app chrome and should be kept.
+- The literal "Sort by {title}" label from 4.png. Use a real label.
+- Pink as a UI state color. Green primary buttons: the Meet Emma video shows a green
+  "Add New" in one expense view, but purple is the standard primary.
 
 ## Reference verification
-Before calling a screen done, compare it side by side with 4.png and 5.png. Check:
-- navigation hierarchy
-- density
-- alignment
-- control sizing
-- whitespace
-- type weights
-- status treatment
-
-Use a similar viewport (1440x900). A whole-image pixel score means nothing when the
-content differs. Record any unresolved mismatch.
+Before calling a screen done:
+- Capture it at 1440x900 and compare it with the closest app image above.
+- Check the shell (top bar, purple strip, workspace, sidebar gradient), density,
+  alignment, and control heights.
+- Check type weights (medium headings, no bold), badge style, table rhythm, and that
+  purple is used only for action and selection.
+- Record any mismatch that remains. Never claim an exact font or pixel match.

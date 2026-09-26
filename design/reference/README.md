@@ -1,32 +1,33 @@
-# Niural reference screenshots
+# Niural reference images
 
 Source references only. Nothing here was built for the case. DESIGN.md explains
-how each image is used.
+how to use them and which values are verified.
 
-## Filenames
-The attachments arrived with the names `1.png` to `5.png`, and those are the names
-kept here. The original upload names (the UUID names in the setup guide) did not
-survive the upload, so they are not invented here. Matches to the guide's list are
-based on content only.
+## app/: application UI (primary source for product builds)
+Full-size product screenshots published on niural.com (/assets/products/*.png) and one
+frame from the site's Meet Emma video. They are sharp enough to measure colors.
 
-## Images on hand
+| File | Shows | Source |
+|---|---|---|
+| [payroll-home.png](app/payroll-home.png) | Payments > Payroll overview | niural.com/assets/products/payroll.png |
+| [salary-updates.png](app/salary-updates.png) | Payments > Salary Updates table | niural.com/assets/products/eor.png |
+| [contracts.png](app/contracts.png) | People > Manage > Contracts table | niural.com/assets/products/contractor-management.png |
+| [benefits.png](app/benefits.png) | People > Benefits grouped table | niural.com/assets/products/peo.png |
+| [hire-worker-type.png](app/hire-worker-type.png) | People > Hire: worker type form | niural.com/assets/products/aor.png |
+| [wallet.png](app/wallet.png) | Niural Wallet | niural.com/assets/products/wallet.png |
+| [ai-assistant-panel.png](app/ai-assistant-panel.png) | Niural AI docked panel beside an expenses table | frame from niural.com/assets/landing-ai/meet-emma.webm |
 
-| File | What it shows | Kind | Likely guide entry (unverified) | Use |
-|---|---|---|---|---|
-| [4.png](4.png) | Settings > All Entities: top nav, lavender settings sidebar, toolbar, 3-column entity card grid | **Application UI** (inside a purple presentation frame) | f1a41cd5… All Entities | Primary source: shell, navigation, toolbar, list cards, primary button |
-| [5.png](5.png) | Entity detail: header, tabs, Company Information label/value card | **Application UI** (inside a purple presentation frame) | 7a2e1397… Entity overview | Primary source: detail header, tabs, label/value grid |
-| [3.png](3.png) | "Niural Global Entity Payroll" title over floating entity payroll cards | Promotional graphic | 26d84935… Payroll marketing composition | Secondary: status-pill vocabulary and payroll card content only |
-| [1.png](1.png) | Floating glass report cards (Expense Report, Paystubs, Payroll Journal, YTD/QTD Report) | Promotional animation | 6bcfe90a… Report cards animation | Product vocabulary only. Never copy the glass style |
-| [2.png](2.png) | "Lack" caption over mock alert cards and blurred screens | Video overlay, problem montage | No match in the guide list | Exclude from UI design. Mock alerts are not Niural components |
+## Root images: supplied screenshots (video frames)
+The attachments arrived as `1.png` to `5.png`; the original upload names did not survive.
 
-## Not received
-The guide lists these, but they were not attached. Their contents are not
-described here:
-- d84f619b… Documents & Compliance table
-- bbbe2079… Application home
-- 65c92555… Global map animation
-- a4e44468… Benefits globe
-- fa58095e… Niural symbol crop
+| File | Kind | Use |
+|---|---|---|
+| [4.png](4.png) | App UI: Settings > All Entities | Card-grid list pattern and settings sidebar. The outer lavender border is presentation framing; the thin purple strip under the top bar is real app chrome |
+| [5.png](5.png) | App UI: entity detail | Detail header, underline tabs, label/value grid |
+| [3.png](3.png) | Promotional | Status vocabulary only |
+| [1.png](1.png) | Promotional | Report names only; never the glass style |
+| [2.png](2.png) | Video overlay | Excluded |
 
-The missing Documents & Compliance screen was the only table reference. Table
-styling in DESIGN.md is therefore an estimate.
+## site/: website and brand (secondary)
+1440x900 captures of niural.com, and the brand page's color and type section.
+Use them for brand decisions and marketing surfaces, not for product screen layout.
