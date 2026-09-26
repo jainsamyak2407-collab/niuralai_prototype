@@ -1,6 +1,6 @@
 # Niural prep readiness
 
-Last checked: 2026-09-26. Branch: `claude/dazzling-volta-7u1esu` (fresh cloud session).
+Last checked: 2026-09-26. Branch: `main` (the only branch from now on).
 No application code exists yet. Status terms: **PASS** (observed working in this
 session), **FAIL** (checked and broken or missing), **NOT YET TESTED** (config found,
 behavior not exercised). Earlier sessions' results are marked as such.
@@ -51,9 +51,9 @@ behavior not exercised). Earlier sessions' results are marked as such.
   design/reference/README.md classifies every root image.
 - Gaps between the written rules and the images:
   - App font is unverified (DESIGN.md says so; Inter is provisional).
-  - No logo asset file; the top-bar logo must be a text/placeholder mark.
-  - No reference for loading skeletons, empty states, inline validation, toasts,
-    modals or drawers. NIURAL.md requires these, so their look is an estimate.
+  - Logo: resolved later by commit 405ab8d (design/assets/niural-logo.svg).
+  - Loading, empty, validation, toast, modal and drawer states have no screenshot;
+    commit 405ab8d added decided defaults to DESIGN.md (estimates, not measured).
   - No application home/dashboard screen; the old list also named a Documents and
     Compliance table and a logo crop, still missing.
   - The AI panel reference is a low-resolution video frame; Smart Actions and the undo
