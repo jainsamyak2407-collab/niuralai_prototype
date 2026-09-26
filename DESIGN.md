@@ -255,6 +255,45 @@ Status always pairs color with a dot or icon and a text label.
   to the app: bordered white cards, labeled inputs, a muted helper line, and
   result tiles.
 
+## Logo
+Use [design/assets/niural-logo.svg](design/assets/niural-logo.svg). It is the official
+logo from niural.com/assets/logo.svg: a #714DFF mark with a #18181B "Niural AI"
+wordmark. In the app top bar, show it at about 24px tall. Never recolor, stretch, or
+redraw it.
+
+## Decided defaults for unreferenced areas
+The points below have no public Niural screenshot. They are settled decisions, not
+open gaps. Apply them without asking, and do not re-research them.
+
+- **App font**: Inter. The website loads Inter on every page, and the app screenshots
+  match it visually. Treat it as final for builds. Call it "Inter (matches Niural's
+  website)" and never an exact confirmation of the app's font.
+- **Loading**: skeleton blocks in #F4F4F5 shaped like the final content (table rows,
+  card lines). Buttons show a small spinner and their verb ("Saving…") and are
+  disabled while pending. No full-page spinners.
+- **Empty**: inside the table or card area, a 20px muted line icon, a 16px/500 title,
+  one 14px muted sentence that says what to do, and a primary or outline button.
+  No illustrations.
+- **Error**: an inline banner in the affected card with a red icon, a plain-language
+  message, and a "Try again" outline button. Keep the user's input. Never replace
+  the page.
+- **Validation**: 1px red border on the field, and 12px red text below it linked with
+  aria-describedby. Required fields show a red asterisk, as in the app.
+- **Modal and drawer**: white, 12px radius, `elevation-modal` shadow, and a
+  rgba(0,0,0,0.4) scrim. Title 18px/500 in a header row with a divider and a close
+  icon. Footer actions sit on the right: outline Cancel, then primary. Use a
+  right-side drawer for record detail or edit forms, and a modal for confirmations.
+- **Toast**: bottom-right, white, 1px border, `elevation-flyout` shadow, 8px radius. A
+  green, red, or blue icon matches the outcome. One line plus an optional
+  link-style action ("Undo", "View"). Auto-dismiss after about 5s. Use toasts for
+  completed actions. Errors that need action stay inline.
+- **Confirm consequential actions** (running payroll, sending money, deleting): use a
+  modal that restates the amount, count, and date. The primary button names the
+  action ("Run payroll for 12 people").
+- **Low-resolution frames**: 4.png, 5.png, and app/ai-assistant-panel.png show
+  patterns only. Take sizes and colors from the sharp images in app/ and the verified
+  tokens above.
+
 ## Exclusions from application UI
 Never bring any of these into product screens:
 - Marketing heroes, eyebrow chips, gradient announcement bars, grid textures.

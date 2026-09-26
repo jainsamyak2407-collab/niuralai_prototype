@@ -31,3 +31,6 @@ The attachments arrived as `1.png` to `5.png`; the original upload names did not
 ## site/: website and brand (secondary)
 1440x900 captures of niural.com, and the brand page's color and type section.
 Use them for brand decisions and marketing surfaces, not for product screen layout.
+
+## Logo
+The official SVG is in [../assets/niural-logo.svg](../assets/niural-logo.svg), from niural.com/assets/logo.svg.
