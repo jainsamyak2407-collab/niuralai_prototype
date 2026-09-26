@@ -215,13 +215,11 @@ session setup names one.
   static-export `vercel.json`; it breaks API routes and server actions.
 - Deploy from the CLI with `vercel deploy --token "$VERCEL_TOKEN"` using
   `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`, so a preview exists without a push.
-  Run it from a copy without `.git`: the Hobby plan blocks CLI deploys whose
-  commit author (Claude) is not on the Vercel team. Pushes to GitHub are not
-  blocked. Example:
-  `D=$(mktemp -d); git archive HEAD | tar -x -C "$D"; (cd "$D" && vercel deploy --token "$VERCEL_TOKEN" --yes)`
+  Vercel only deploys commits whose author is on the team, so the SessionStart
+  hook sets the git author to Samyak; commits still carry the Claude
+  Co-Authored-By line. Do not change the git author.
 - Previews sit behind Vercel login. Check them with `vercel curl <path>
-  --deployment <url>` after writing the token to
-  `~/.local/share/com.vercel.cli/auth.json` as `{"token":"..."}`.
+  --deployment <url>`; the SessionStart hook writes the CLI login file.
 - Until `app/` exists on `main`, pushes to `main` fail with "Root Directory
   app does not exist". That is expected and clears with the first build.
 - Set the app's runtime variables (APP_ANTHROPIC_API_KEY, Supabase keys) in

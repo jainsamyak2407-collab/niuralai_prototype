@@ -36,5 +36,12 @@
         ]
       }
     ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git push origin --delete claude/*)",
+      "Bash(vercel remove *)",
+      "Bash(npx -y vercel@latest remove *)"
+    ]
   }
 }

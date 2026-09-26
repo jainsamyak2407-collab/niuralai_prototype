@@ -2,6 +2,14 @@
 # Every session works on main (NIURAL.md > Git). Cloud sessions start on a
 # claude/* branch; switch to main when the tree is clean.
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
+# Vercel only deploys commits whose author is on the team, so commit as Samyak.
+git config user.name "Samyak Jain"
+git config user.email "jainsamyak2407@gmail.com"
+# Let `vercel curl` reach login-protected previews.
+if [ -n "$VERCEL_TOKEN" ]; then
+  d="$HOME/.local/share/com.vercel.cli"; mkdir -p "$d"
+  printf '{"token":"%s"}' "$VERCEL_TOKEN" > "$d/auth.json"; chmod 600 "$d/auth.json"
+fi
 [ "$(git branch --show-current)" = main ] && exit 0
 if [ -n "$(git status --porcelain)" ]; then
   echo "Not on main and the tree has changes. Switch to main before working." ; exit 0
