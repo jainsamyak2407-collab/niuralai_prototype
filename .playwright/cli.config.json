@@ -2,7 +2,15 @@
   "browser": {
     "browserName": "chromium",
     "launchOptions": {
-      "executablePath": "/opt/pw-browsers/chromium"
+      "executablePath": "/opt/pw-browsers/chromium",
+      "headless": true
+    },
+    "contextOptions": {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "deviceScaleFactor": 1
     }
   }
 }
