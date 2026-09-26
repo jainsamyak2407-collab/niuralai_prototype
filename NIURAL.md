@@ -220,8 +220,9 @@ session setup names one.
   Co-Authored-By line. Do not change the git author.
 - Previews sit behind Vercel login. Check them with `vercel curl <path>
   --deployment <url>`; the SessionStart hook writes the CLI login file.
-- Until `app/` exists on `main`, pushes to `main` fail with "Root Directory
-  app does not exist". That is expected and clears with the first build.
+- `app/` on `main` starts as a bare Next.js base with `GET /api/health`,
+  which checks the Supabase and Anthropic keys (pass or fail only). Build the
+  product on top of it and keep the health route.
 - Set the app's runtime variables (APP_ANTHROPIC_API_KEY, Supabase keys) in
   the Vercel project, not only in the Claude environment.
 - This container's proxy re-signs HTTPS, so headless Chromium rejects live
