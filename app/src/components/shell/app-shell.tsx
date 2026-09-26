@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-full flex-col">
       <header className="flex h-[60px] shrink-0 items-center gap-3 bg-surface px-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/niural-logo.svg" alt="Niural" className="h-6 w-auto" />
+        <img src="niural-logo.svg" alt="Niural" className="h-6 w-auto" />
         <span className="h-6 w-px bg-divider" aria-hidden />
         <nav aria-label="Modules" className="flex min-w-0 items-center gap-1 overflow-x-auto">
           {MODULES.map(({ label, icon: Icon, active }) => (
