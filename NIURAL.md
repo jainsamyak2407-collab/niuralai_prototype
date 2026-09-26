@@ -26,6 +26,9 @@ font, landing-page layout, or palette to make the result look more fashionable.
 Keep unresolved font and token provenance explicit. Never claim an exact match
 from a compressed screenshot.
 
+Do not browse or crawl niural.com. DESIGN.md and design/reference/ already hold
+the researched design system. Re-research only if Samyak asks.
+
 If design/reference/ holds no application screenshots, say so once at BUILD start,
 then proceed with DESIGN.md's provisional values. Do not invent a different look.
 
