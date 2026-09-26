@@ -6,6 +6,28 @@ short updates and keep working. Ask only about a missing requirement that materi
 changes the user, scope, permissions, or outcome. Do not ask for aesthetic approval
 on every component.
 
+## Session start (mandatory, every session)
+Before the first line of product code, in this order:
+1. Run impeccable's context step, then read DESIGN.md and look at
+   design/reference/app/salary-updates.png and payroll-home.png.
+2. Load, with the Skill tool, every skill in the routing table that the brief
+   touches. For a full-stack build that means: impeccable, ui-ux-pro-max,
+   vercel-react-best-practices, vercel-composition-patterns, ai-sdk (if AI),
+   supabase and supabase-postgres-best-practices (if persistence),
+   playwright-cli, writing-guidelines, verification-before-completion,
+   web-design-guidelines, vercel-cli-with-tokens. Report which ones loaded.
+3. Write the shared contract, then delegate to niural-ui, niural-backend and
+   niural-verifier as described under Delegation. Do not skip delegation
+   because the build looks small; say so if you degrade to sequential work.
+4. Check `VERCEL_TOKEN` works (`vercel whoami --token "$VERCEL_TOKEN"`) and
+   report a failure at once, since Samyak has to fix it in the environment.
+
+The approved look is the Payroll Readiness rehearsal (2026-09-26): white top
+bar with module pills, #A78BFF strip, lavender sidebar with a white selected
+pill, section cards with a header row, #F4F4F5 table header, white status
+pills with a dot, right-side review sheet with a scrim, toast confirmation,
+currency code before amounts. Keep that design language for every screen.
+
 ## Preparation and build
 Preparation means tools, source research, generic operating rules, and reference
 analysis. Do not implement the actual case before the live BUILD instruction.
@@ -176,3 +198,16 @@ every file edit. Honor interviewer changes and keep Samyak able to explain the w
 `main` is the only branch. Every session starts from `main`, commits to `main`,
 and pushes to `main`. Do not create session or feature branches, even if the
 session setup names one.
+
+## Vercel
+- The Vercel project `niuralai-prototype` is linked to this repo through
+  Vercel's GitHub app, so every push to any branch creates a preview. Its
+  Root Directory must point at the Next.js app folder (`app`). Do not add a
+  static-export `vercel.json`; it breaks API routes and server actions.
+- Deploy from the CLI with `vercel deploy --token "$VERCEL_TOKEN"` using
+  `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`, so a preview exists without a push.
+- Set the app's runtime variables (APP_ANTHROPIC_API_KEY, Supabase keys) in
+  the Vercel project, not only in the Claude environment.
+- This container's proxy re-signs HTTPS, so headless Chromium rejects live
+  Vercel URLs unless the setup script trusts the proxy CA. Test locally on
+  `next start` first, then smoke-test the preview.
