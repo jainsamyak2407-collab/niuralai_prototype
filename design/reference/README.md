@@ -1,17 +1,32 @@
 # Niural reference screenshots
 
-Source references only, not screens built for the case. Keep the original filenames below. See DESIGN.md for how each is used.
+Source references only. Nothing here was built for the case. DESIGN.md explains
+how each image is used.
 
-Status: images not uploaded yet.
+## Filenames
+The attachments arrived with the names `1.png` to `5.png`, and those are the names
+kept here. The original upload names (the UUID names in the setup guide) did not
+survive the upload, so they are not invented here. Matches to the guide's list are
+based on content only.
 
-| Original filename | What it shows | Use |
-|---|---|---|
-| f1a41cd5-d600-47e4-9044-7620dfdb9a36.png | All Entities application view | Main navigation, sidebar, content density, cards, search, primary action |
-| 7a2e1397-53fd-4728-8205-0188e5166d8d.png | Entity overview detail | Information grouping, tabs, label/value hierarchy |
-| d84f619b-9998-49f3-8678-d8ce5b2ea310.png | Documents & Compliance | Table rhythm, document links, statuses, segmented filtering |
-| bbbe2079-fd27-4bcf-89fb-905989761485.png | Application home | Header and onboarding hierarchy; perspective limits measurement |
-| 65c92555-480f-4543-b712-2c17f2922d5a.png | Global map animation | Marketing reference only |
-| 26d84935-788d-4778-bab1-7c9691cb3764.png | Payroll marketing composition | Brand mood only |
-| a4e44468-2606-479d-b04f-f7626a992f0d.png | Benefits globe | Marketing illustration only |
-| fa58095e-dd61-4f7f-9fe1-9dbd4da73498.png | Niural symbol crop | Reference logo; low resolution |
-| 6bcfe90a-13cc-4a45-a7e1-1cb4f506c3bf.png | Report cards animation | Brand mood only |
+## Images on hand
+
+| File | What it shows | Kind | Likely guide entry (unverified) | Use |
+|---|---|---|---|---|
+| [4.png](4.png) | Settings > All Entities: top nav, lavender settings sidebar, toolbar, 3-column entity card grid | **Application UI** (inside a purple presentation frame) | f1a41cd5… All Entities | Primary source: shell, navigation, toolbar, list cards, primary button |
+| [5.png](5.png) | Entity detail: header, tabs, Company Information label/value card | **Application UI** (inside a purple presentation frame) | 7a2e1397… Entity overview | Primary source: detail header, tabs, label/value grid |
+| [3.png](3.png) | "Niural Global Entity Payroll" title over floating entity payroll cards | Promotional graphic | 26d84935… Payroll marketing composition | Secondary: status-pill vocabulary and payroll card content only |
+| [1.png](1.png) | Floating glass report cards (Expense Report, Paystubs, Payroll Journal, YTD/QTD Report) | Promotional animation | 6bcfe90a… Report cards animation | Product vocabulary only. Never copy the glass style |
+| [2.png](2.png) | "Lack" caption over mock alert cards and blurred screens | Video overlay, problem montage | No match in the guide list | Exclude from UI design. Mock alerts are not Niural components |
+
+## Not received
+The guide lists these, but they were not attached. Their contents are not
+described here:
+- d84f619b… Documents & Compliance table
+- bbbe2079… Application home
+- 65c92555… Global map animation
+- a4e44468… Benefits globe
+- fa58095e… Niural symbol crop
+
+The missing Documents & Compliance screen was the only table reference. Table
+styling in DESIGN.md is therefore an estimate.

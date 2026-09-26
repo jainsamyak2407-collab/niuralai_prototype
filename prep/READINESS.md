@@ -17,7 +17,7 @@ Status terms: **Installed** (files present), **Configured** (settings written),
 | Next.js scaffold, build, Google font | Tested | create-next-app, `npm run build`, next/font Inter all worked |
 | Practice workflow (unrelated equipment reservation, outside repo) | Tested | Server-side validation, save, survives refresh, double booking refused, no console errors |
 | Verifier agent catches defects | Tested | On the practice app it caught the planted raw validation message, plus a server error that replaced the whole page and a form that cleared valid input. Those rules are now in NIURAL.md |
-| Reference screenshots | Blocked | design/reference/ holds only README.md |
+| Reference screenshots | Partial | 5 of 9 received (2 app screens, 3 promotional). DESIGN.md reconciled with measured values. Missing: Documents & Compliance table, application home, map, globe, logo crop |
 | Setup script | Blocked | Fresh session started without playwright-cli; the saved script fails or is missing |
 | shadcn component registry | Blocked | ui.shadcn.com denied by network policy (CONNECT 403) |
 | Supabase | Blocked | No credentials; supabase.com and *.supabase.co denied by network policy |

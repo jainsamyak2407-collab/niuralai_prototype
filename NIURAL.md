@@ -15,7 +15,10 @@ Propose one distinctive capability only when it strengthens that workflow and fi
 the remaining time. Avoid inventing a predetermined payroll case.
 
 ## Design authority
-Read DESIGN.md and inspect the actual reference images before any UI implementation.
+Read DESIGN.md and inspect the application screenshots it cites before any UI
+implementation: design/reference/4.png (All Entities) and design/reference/5.png
+(entity detail). design/reference/README.md says which images are promotional and
+must not be copied.
 The supplied application references outrank generic aesthetic preferences. Treat
 this as an extension to an existing product identity. Use Impeccable in Operate mode.
 Maintain a reusable token and component system. Do not substitute an unrelated
@@ -41,10 +44,12 @@ end. Fix real findings. Never add an ignore just to silence one.
 
 ## Niural UI standard
 Every screen, including the first draft, follows DESIGN.md without a second prompt:
-- Shell: compact white top bar with organization context, pale lavender secondary
-  sidebar with a white selected item, content on white/off-white surfaces.
-- Density: operational, not marketing. Tables and label/value groups over cards.
-  No hero sections, greeting banners, or decorative summary tiles.
+- Shell: compact white top bar (logo, organization switcher, icon-labeled nav,
+  utilities on the right), lavender section sidebar with uppercase group labels
+  and a white selected pill, a page header strip, and content on #FAFAFA.
+- Density: operational, not marketing. Use tables, label/value grids, and
+  actionable list cards like the entity cards in 4.png. No hero sections,
+  greeting banners, or decorative summary tiles.
 - Components: one button shape, one control height, one badge style, one table
   rhythm. Purple only for primary action, selection, focus, and active state.
 - Type: one sans family, 12/14/16/22 scale, 400/500/600 weights, tabular figures.
