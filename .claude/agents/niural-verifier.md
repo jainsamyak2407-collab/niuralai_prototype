@@ -15,3 +15,5 @@ the paths assigned by the lead; do not modify application implementation.
 Report observed failures separately from suspected risks, with reproduction steps
 and impact. Avoid new feature requests. Return at most five material findings and
 the actual evidence. A successful build is not proof that the user journey works.
+Default ownership: tests/e2e/** and artifacts/qa/** only. Capture screenshots at
+1440x900 with playwright-cli and save them under artifacts/qa/.

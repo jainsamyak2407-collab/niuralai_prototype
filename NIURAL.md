@@ -23,6 +23,37 @@ font, landing-page layout, or palette to make the result look more fashionable.
 Keep unresolved font and token provenance explicit. Never claim an exact match
 from a compressed screenshot.
 
+If design/reference/ holds no application screenshots, say so once at BUILD start,
+then proceed with DESIGN.md's provisional values. Do not invent a different look.
+
+## Skill authority
+Impeccable is the only design lead. Run its context step once per session.
+ui-ux-pro-max is a secondary reference for UX patterns, accessibility, tables,
+charts, and interaction details. Use its search for those topics only. Ignore
+its palette, font pairing, style, and landing-page recommendations whenever they
+conflict with DESIGN.md. Do not use design, brand, slides, banner-design,
+design-system, ui-styling, frontend-design, theme-factory, brand-guidelines,
+canvas-design, or web-artifacts-builder for this project's product UI. They
+compete with the Niural reference system.
+
+The Impeccable design hook scans every UI file edit and reports findings at turn
+end. Fix real findings. Never add an ignore just to silence one.
+
+## Niural UI standard
+Every screen, including the first draft, follows DESIGN.md without a second prompt:
+- Shell: compact white top bar with organization context, pale lavender secondary
+  sidebar with a white selected item, content on white/off-white surfaces.
+- Density: operational, not marketing. Tables and label/value groups over cards.
+  No hero sections, greeting banners, or decorative summary tiles.
+- Components: one button shape, one control height, one badge style, one table
+  rhythm. Purple only for primary action, selection, focus, and active state.
+- Type: one sans family, 12/14/16/22 scale, 400/500/600 weights, tabular figures.
+- Spacing: 4px basis. Consistent gutters. Left-aligned content.
+- States: loading skeletons, useful empty states, inline validation, error
+  recovery, and a visible completed state for every primary action.
+Tokens live in one place (global CSS variables mapped into Tailwind). Components
+use semantic tokens, never scattered hex values.
+
 ## Stack
 When no real codebase is supplied, default to Next.js App Router, TypeScript,
 Tailwind, shadcn/ui primitives, Lucide icons, Zod, Supabase persistence where needed,
@@ -38,6 +69,25 @@ shared schema, global tokens, and integration. Do not let two agents edit the sa
 file. Pass the brief, reference paths, and acceptance checks to each delegate.
 Integrate useful completed work as it returns. Do not wait for all agents to finish
 before opening a working preview. Degrade to sequential work if delegation fails.
+
+Before delegating, write the shared contract yourself: Zod schemas and inferred
+types, route and server action signatures, and the table list. Delegates import
+it and never redefine it. A contract change goes through you.
+
+Default file ownership inside app/ (adjust per brief, and state changes up front):
+- Lead: package.json, lockfile, config files, src/app/layout.tsx,
+  src/app/globals.css, src/components/shell/**, src/lib/contracts/**, .env.example.
+- niural-ui: src/app/(app)/**/page.tsx and loading/error files,
+  src/components/<feature>/**, src/components/ui/** additions.
+- niural-backend: src/app/api/**, src/server/**, src/lib/ai/**, src/lib/db/**,
+  supabase/migrations/**, seed scripts.
+- niural-verifier: tests/e2e/**, artifacts/qa/**. Never edits application code.
+
+## Decisions
+Make ordinary product, design, and implementation choices without asking. Record
+consequential assumptions in the status line and keep going. Stop and ask only
+when a choice changes the product direction, the target user, or the scope, or
+when you need access, credentials, or authorization only Samyak can give.
 
 ## Functional standard
 Visible primary actions must work and yield clear feedback. Handle loading, empty,
@@ -60,6 +110,13 @@ when AI is central to the brief. Claim only behavior actually demonstrated.
 ## Automatic review
 After the first integrated screen and again before final demonstration: open the
 browser, inspect the screenshot, exercise the workflow, and fix material defects.
+Do this without being asked. Each review round:
+1. Capture the screen with playwright-cli at 1440x900 and read the image.
+2. Compare it with the reference screenshots and the Niural UI standard above.
+3. List the top material weaknesses: hierarchy, alignment, density, spacing,
+   inconsistent components, missing states, contrast, broken interactions.
+4. Fix them in one batch, then capture once more to confirm.
+Stop after two rounds per surface unless a blocker remains.
 Use Impeccable critique/polish and web-design-guidelines for the relevant surface.
 Use systematic-debugging for errors and verification-before-completion for claims.
 Run focused checks plus the production build once the flow is stable. Preserve

@@ -9,3 +9,6 @@ node_modules/
 playwright-report/
 test-results/
 artifacts/qa/
+.claude/settings.local.json
+.impeccable/config.local.json
+.impeccable/hook.cache.json
