@@ -145,3 +145,8 @@ buffer and stop open-ended polish when the remaining time cannot support it.
 Updates should state the product decision, what now works, and the next check in
 three short lines. Track major assumptions and actual limitations. Do not narrate
 every file edit. Honor interviewer changes and keep Samyak able to explain the work.
+
+## Git
+`main` is the only branch. Every session starts from `main`, commits to `main`,
+and pushes to `main`. Do not create session or feature branches, even if the
+session setup names one.
