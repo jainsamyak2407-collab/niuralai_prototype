@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "installCommand": "cd app && npm ci",
+  "buildCommand": "cd app && STATIC_EXPORT=1 npm run build",
+  "outputDirectory": "app/out"
+}
