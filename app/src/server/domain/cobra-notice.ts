@@ -32,10 +32,12 @@ function monthsAfter(date: string, months: number) {
 
 export function cobraNotice(s: ScenarioState, r: CobraReferral): CobraNotice {
   const noticeDate = localDate(s.clock.businessNow);
+  // coverageLossDate is the first day without coverage; the last covered day is the day before.
   const loss = r.coverageLossDate ?? noticeDate;
+  const lastCovered = addDays(loss, -1);
   const later = loss > noticeDate ? loss : noticeDate;
   const electBy = addDays(later, 60);
-  const coverageThrough = monthsAfter(loss, 36);
+  const coverageThrough = monthsAfter(lastCovered, 36);
   // Up to 102% of the full single-coverage premium (employee + employer), per month (24 paychecks a year).
   const costs = r.plans.map((p) => {
     const pl = plan(p.planId);
@@ -60,8 +62,8 @@ export function cobraNotice(s: ScenarioState, r: CobraReferral): CobraNotice {
       {
         heading: "Why you are receiving this notice",
         paragraphs: [
-          `Your coverage under the Nexa plan ends on ${d(loss)} because of a qualifying event: ${r.qualifyingEvent.toLowerCase()}${r.eventDate ? ` (final ${d(r.eventDate)})` : ""}.`,
-          `You are entitled to elect COBRA continuation coverage starting ${d(addDays(loss, 1))}, so there is no gap in coverage if you elect and pay on time.`,
+          `Your coverage under the Nexa plan ends on ${d(lastCovered)} because of a qualifying event: ${r.qualifyingEvent.toLowerCase()}${r.eventDate ? ` (final ${d(r.eventDate)})` : ""}.`,
+          `You are entitled to elect COBRA continuation coverage starting ${d(loss)}, so there is no gap in coverage if you elect and pay on time.`,
         ],
       },
       {
