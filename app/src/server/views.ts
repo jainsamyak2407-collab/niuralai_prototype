@@ -611,8 +611,8 @@ export async function integrationsView(user: DemoUser, scenario: ScenarioId) {
       ? s.cobra.map((r: CobraReferral) => ({
           ...r,
           caseNumber: s.cases.find((c) => c.id === r.caseId)!.caseNumber,
-          // The administrator sees the referral's contact details; nobody else does.
-          private: user.role === "cobra_admin" || user.role === "demo_operator" ? r.private : undefined,
+          // Only the administrator receives the referral's contact details; nobody else does.
+          private: user.role === "cobra_admin" ? r.private : undefined,
         }))
       : null,
     outbox: ops ? s.outbox.slice().reverse() : null,

@@ -47,7 +47,8 @@ export function useToast() {
 }
 
 // ---------------- Commands ----------------
-export type CommandInput = Omit<Command, "idempotencyKey"> & { idempotencyKey?: string };
+// Distributive omit keeps each command's own fields (a plain Omit on a union drops them).
+export type CommandInput = Command extends infer C ? (C extends Command ? Omit<C, "idempotencyKey"> & { idempotencyKey?: string } : never) : never;
 export type CommandResponse = CommandResult & { latest?: unknown };
 
 function newKey() {
