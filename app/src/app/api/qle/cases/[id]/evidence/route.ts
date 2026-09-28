@@ -3,6 +3,8 @@ import { createHash } from "node:crypto";
 import type { EvidenceFile, QleCase } from "@/lib/contracts/domain";
 import { fmtDateLong } from "@/lib/dates";
 import { readDocument, readNoteFor, statusFor, toProposedFacts } from "@/server/ai/evidence";
+import { scoreDocument } from "@/server/ai/confidence";
+import { evaluateCase } from "@/server/domain/evaluate";
 import { aiLog, audit, type Ctx, DomainError, nextId, now } from "@/server/domain/ctx";
 import { apiError, sessionFor } from "@/server/docs/http";
 import { cleanUploadName, declaredMismatch, MAX_UPLOAD_BYTES, pdfHasActiveContent, sniffType } from "@/server/docs/sniff";
@@ -34,11 +36,15 @@ function employeeFile(f: EvidenceFile) {
     documentType: f.documentType,
     proposedFacts: f.proposedFacts,
     readNote: f.readNote,
+    confidence: f.confidence ?? null,
+    confidenceSummary: f.confidenceSummary ?? null,
+    reviewed: !!f.reviewedBy,
   };
 }
 
 function messageFor(f: EvidenceFile, answersRequest: boolean): string {
   const tail = answersRequest ? " It is attached to HR's request; send your reply to finish." : "";
+  if (f.confidence === 100) return `AI match 100%. All key facts match your form and Nexa's rules, so this document is verified. Nothing else is needed from you.${tail}`;
   if (f.status === "unreadable") return `We could not read this file. Upload a clearer copy of the exact document, or tell us it is not available yet.${tail}`;
   if (f.readMode === "manual") return `Your document was saved. AI reading is unavailable, so HR will read it (manual review).${tail}`;
   const conflict = f.proposedFacts.find((p) => p.conflictWith);
@@ -163,6 +169,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       f.documentType = read.extraction?.documentType ?? null;
       f.status = statusFor(read.extraction, facts);
       f.readNote = readNoteFor(read, c, facts);
+      const conf = scoreDocument(s, c, read.mode, read.extraction ?? null, facts);
+      f.confidence = conf.score;
+      f.confidenceSummary = conf.summary;
+      if (conf.score === 100) {
+        // Happy path: every key fact matches, so the facts are confirmed and the document is
+        // verified automatically. HR can still reject it; the employee has nothing to redo.
+        for (const p of f.proposedFacts) p.confirmed = { choice: "document", value: p.value, by: "ai_auto", at: s.clock.businessNow };
+        f.status = "accepted_for_review";
+        f.reviewedBy = "ai_auto";
+        f.reviewedAt = s.clock.businessNow;
+        c.evaluation = evaluateCase(s, c);
+      }
       const conflicts = facts.filter((p) => p.conflictWith).length;
       const toConfirm = facts.filter((p) => p.field !== "documentType").length;
       if (read.mode !== "model") {
@@ -178,6 +196,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         });
         if (toConfirm) aiLog(ctx, { caseId: c.id, kind: "facts_proposed", label: "Facts proposed", detail: `${toConfirm} value${toConfirm === 1 ? "" : "s"} proposed for the employee to confirm${conflicts ? `; ${conflicts} differ${conflicts === 1 ? "s" : ""} from the form (form kept)` : ""}.`, model: read.mode === "model" ? read.model : null });
       }
+      if (conf.score !== null) aiLog(ctx, { caseId: c.id, kind: "facts_proposed", label: `AI match ${conf.score}%`, detail: conf.summary, model: read.mode === "model" ? read.model : null });
       audit(ctx, {
         caseId: c.id,
         type: "evidence.read",

@@ -36,8 +36,9 @@ that scenario's synthetic records change; earlier revisions stay in storage hist
    confirm the proposed date of birth. Benefit changes: medical only, Aetna Standard; see
    USD 150 → 250 and the labeled catch-up forecast. Review → attest → Submit. Receipt shows the
    case number and received time.
-3. **Daniel** (second window): Life events → the case. Checks show sources and rule versions.
-   Accept the evidence → Approve this version. Approval queues carrier work; it does not mark
+3. **Daniel** (second window): Life events → the case. With the happy-path document the
+   evidence shows **AI match 100%** and is verified automatically, so Daniel just clicks
+   **Approve this version**. (A problem document shows a lower score and what to fix.) Approval queues carrier work; it does not mark
    coverage.
 4. **Demo operator**: Controls → set preset "Carrier returns next-month start". Advance to next
    batch (10:00 PM). Carrier inbox → open batch → Acknowledge transport → Accept file → Publish

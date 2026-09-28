@@ -286,7 +286,9 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
       !deep
         ? "Handled in assisted review."
         : reviewed
-          ? "Evidence reviewed and accepted by HR. OCR or model reading does not certify authenticity."
+          ? files.some((e) => e.reviewedBy === "ai_auto") && !files.some((e) => e.reviewedBy && e.reviewedBy !== "ai_auto")
+            ? `Verified automatically: AI match 100% — ${files.find((e) => e.reviewedBy === "ai_auto")?.confidenceSummary ?? "all key facts match"} HR can still reject the document.`
+            : "Evidence reviewed and accepted by HR. OCR or model reading does not certify authenticity."
           : awaitingConfirm
             ? "Extracted facts are waiting for the employee to confirm."
             : awaitingHr
@@ -335,7 +337,7 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
   // --- overlap with other open requests for the same employee
   const overlapping = s.cases.filter((x) => x.id !== c.id && x.employeeId === c.employeeId && !x.background && ["submitted", "needs_information", "under_review"].includes(x.status));
   if (overlapping.length) {
-    checks.push(check("overlap", "Other open requests", "needs_review", `Another open request (${overlapping.map((x) => x.caseNumber).join(", ")}) affects the same household. Sequence them or review a combined version; no last-write-wins.`, "R-S125", {}));
+    checks.push(check("overlap", "Other open requests", "needs_review", `Another open request (${overlapping.map((x) => x.caseNumber).join(", ")}) affects the same household. Check they do not conflict; each request keeps its own version (no last-write-wins).`, "R-S125", {}, false));
   }
 
   // --- event-specific checks

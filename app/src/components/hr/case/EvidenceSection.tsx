@@ -1,3 +1,4 @@
+import { ConfidenceBlock } from "@/components/ui/confidence";
 import { AlertTriangle, ExternalLink, FileText } from "lucide-react";
 import type { HrCaseView } from "@/server/views";
 import { ownerName } from "@/server/config/identities";
@@ -165,6 +166,7 @@ export function EvidenceSection({
                         {size(f.sizeBytes)} · uploaded{" "}
                         <DateText time={f.uploadedAt} />
                       </p>
+                      <ConfidenceBlock score={f.confidence} summary={f.confidenceSummary} />
                       {f.readNote ? (
                         <p className="mt-1 text-[13px] text-ink-2">
                           {f.readNote}

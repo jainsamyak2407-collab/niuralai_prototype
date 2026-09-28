@@ -1,4 +1,5 @@
 "use client";
+import { ConfidenceBlock } from "@/components/ui/confidence";
 
 import { useState } from "react";
 import { CheckCircle2, ExternalLink, FileText } from "lucide-react";
@@ -55,6 +56,7 @@ export function EvidenceList({ caseId, version, files, emptyText }: { caseId: st
               </a>
             </header>
             <div className="space-y-3 px-4 py-3 text-sm">
+              <ConfidenceBlock score={f.confidence} summary={f.confidenceSummary} />
               {f.readMode ? <p className="text-[13px] text-ink-2">{READ_MODE[f.readMode]}</p> : null}
               {f.readNote ? <p className="text-[13px] text-muted">{f.readNote}</p> : null}
               {f.status === "unreadable" ? <p className="text-[13px] text-ink-2">We could not read this file. Upload a clearer copy, or continue and HR will tell you exactly what is needed.</p> : null}

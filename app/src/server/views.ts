@@ -224,7 +224,7 @@ export async function employeeCasesView(user: DemoUser, scenario: ScenarioId) {
 }
 
 function evidenceForEmployee(f: EvidenceFile) {
-  return { id: f.id, fileName: f.fileName, mimeType: f.mimeType, sizeBytes: f.sizeBytes, uploadedAt: f.uploadedAt, status: f.status, readMode: f.readMode, documentType: f.documentType, proposedFacts: f.proposedFacts, readNote: f.readNote, reviewed: !!f.reviewedBy, rejectionReason: f.rejectionReason ?? null, taskId: f.taskId ?? null };
+  return { id: f.id, fileName: f.fileName, mimeType: f.mimeType, sizeBytes: f.sizeBytes, uploadedAt: f.uploadedAt, status: f.status, readMode: f.readMode, documentType: f.documentType, proposedFacts: f.proposedFacts, readNote: f.readNote, reviewed: !!f.reviewedBy, autoVerified: f.reviewedBy === "ai_auto", confidence: f.confidence ?? null, confidenceSummary: f.confidenceSummary ?? null, rejectionReason: f.rejectionReason ?? null, taskId: f.taskId ?? null };
 }
 
 /** Employee's view of one case: wizard + tracker. Internal notes, other people's data and private continuation details are excluded. */

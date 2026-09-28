@@ -326,8 +326,10 @@ export interface EvidenceFile {
   documentType: string | null;
   proposedFacts: ProposedFact[];
   readNote: string | null;
-  reviewedBy?: string;
+  reviewedBy?: string; // "ai_auto" when verified automatically at 100% match
   reviewedAt?: ISOTime;
+  confidence?: number | null; // prototype match-confidence rule, not a model number
+  confidenceSummary?: string;
   rejectionReason?: string;
 }
 
