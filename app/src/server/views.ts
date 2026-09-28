@@ -648,6 +648,7 @@ export async function integrationsView(user: DemoUser, scenario: ScenarioId) {
           caseNumber: s.cases.find((c) => c.id === r.caseId)!.caseNumber,
           // Only the administrator receives the referral's contact details; nobody else does.
           private: user.role === "cobra_admin" ? r.private : undefined,
+          notice: ["received", "notice_tracked"].includes(r.state) ? cobraNotice(s, r) : null,
         }))
       : null,
     outbox: ops ? s.outbox.slice().reverse() : null,

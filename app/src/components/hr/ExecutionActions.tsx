@@ -659,22 +659,24 @@ export function CobraNoticeButton({
   beneficiary,
   notice,
   sentAt,
+  asAdministrator = false,
 }: {
   referralId: string;
   beneficiary: string;
   notice: NoticePreview;
   sentAt?: string;
+  asAdministrator?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const { run, pending, result, clear } = useHrCommand();
   const send = async () => {
-    const r = await run({ type: "hr.sendCobraNotice", referralId });
+    const r = await run(asAdministrator ? { type: "ops.cobra", referralId, action: "send_notice" } : { type: "hr.sendCobraNotice", referralId });
     if (r.ok) setOpen(false);
   };
   return (
     <>
       <Button size="sm" variant={sentAt ? "outline" : "primary"} onClick={() => setOpen(true)}>
-        {sentAt ? "View sent notice" : "Send COBRA notice"}
+        {sentAt ? "View sent notice" : asAdministrator ? "Send election notice" : "Send COBRA notice"}
       </Button>
       <div className="text-left">
         <Sheet
@@ -709,7 +711,7 @@ export function CobraNoticeButton({
                 {beneficiary} &lt;{notice.to}&gt;
               </dd>
               <dt className="text-muted">From</dt>
-              <dd className="text-ink">Nexa Benefits &lt;benefits@nexa.example&gt; (simulated)</dd>
+              <dd className="text-ink">{asAdministrator ? "Nexa continuation administrator <cobra@demo.example>" : "Nexa Benefits <benefits@nexa.example>"} (simulated)</dd>
               <dt className="text-muted">Subject</dt>
               <dd className="text-ink">{notice.subject}</dd>
             </dl>

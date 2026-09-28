@@ -217,8 +217,10 @@ describe("COBRA election notice from the portal", () => {
     r.receivedAt = s.clock.businessNow;
     s.rev += 1;
     await store.commit(s);
-    const out = await okc("u_daniel", "divorce", { type: "hr.sendCobraNotice", referralId: r.id });
+    // The administrator sends it from the referral inbox; HR's later click is a no-op.
+    const out = await okc("u_cobra", "divorce", { type: "ops.cobra", referralId: r.id, action: "send_notice" });
     expect(out.message).toContain("Arjun Shah");
+    expect((await okc("u_daniel", "divorce", { type: "hr.sendCobraNotice", referralId: r.id })).message).toContain("already sent");
     const after = await st("divorce");
     const mail = after.outbox.find((n) => n.key === `cobra_notice:${r.id}`)!;
     expect(mail.recipientEmail).toBe("arjun.private@example.invalid");

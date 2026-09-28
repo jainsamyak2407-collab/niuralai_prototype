@@ -1,5 +1,5 @@
 import type { Command } from "@/lib/contracts/commands";
-import type { CarrierBatch, CommandResult, DemoUser, QleCase, Role, ScenarioState } from "@/lib/contracts/domain";
+import type { CarrierBatch, CobraReferral, CommandResult, DemoUser, QleCase, Role, ScenarioState } from "@/lib/contracts/domain";
 import { addDays, firstOfNextMonth, fmtDateLong, localDate, zonedToUtc } from "@/lib/dates";
 import { fmtMoney } from "@/lib/money";
 import { EVENT_LABEL } from "@/server/config/rules";
@@ -516,17 +516,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       if (c.employerId !== ctx.actor.employerId) throw new DomainError(404, "referral_not_found", "Referral not found.");
       if (r.noticeSent) return { ok: true, message: `The election notice was already sent to ${r.beneficiaryName}.` };
       if (r.state !== "received") throw new DomainError(422, "receive_first", "The administrator must acknowledge the referral before the election notice is sent.");
-      const n = cobraNotice(s, r);
-      r.noticeSent = { at: now(ctx), by: ctx.actor.id, to: n.to, subject: n.subject };
-      r.state = "notice_tracked";
-      r.noticeRef = `NTC-${r.id.toUpperCase()}`;
-      r.noticeStatus = `Election notice emailed to ${r.beneficiaryName} on ${fmtDateLong(n.noticeDate, true)} (simulated). Election due by ${fmtDateLong(n.electBy, true)}.`;
-      r.history.push({ at: now(ctx), actor: ctx.actor.id, state: "notice_tracked", note: `Election notice ${r.noticeRef} emailed to ${n.to} from the portal.` });
-      // Sent to the beneficiary only. Never shown to the employee.
-      s.outbox.push({ id: nextId(s, "nt"), key: `cobra_notice:${r.id}`, recipientUserId: r.beneficiaryPersonId, recipientEmail: r.private.email, recipientRole: "beneficiary", subject: n.subject, preview: cobraNoticeText(n).slice(0, 400), caseId: c.id, link: "/", eventType: "cobra_notice", createdAt: now(ctx), deliveryState: "simulated_delivered" });
-      audit(ctx, { caseId: c.id, type: "cobra.notice_sent", summary: `${ctx.actor.name} emailed the COBRA election notice ${r.noticeRef} to ${r.beneficiaryName} (${n.to}) from the portal. Election due ${fmtDateLong(n.electBy, true)}; coverage may continue through ${fmtDateLong(n.coverageThrough, true)}.` });
-      refreshCompletion(ctx, c);
-      return { ok: true, message: `COBRA election notice sent to ${r.beneficiaryName} at ${n.to} (simulated email).` };
+      return sendNotice(ctx, r);
+
     }
     case "hr.sendBatch": {
       const b = runBatch(ctx);
@@ -887,6 +878,10 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
         audit(ctx, { caseId: c.id, type: "cobra.received", summary: "COBRA administrator acknowledged the referral. Receipt is not a notice, an election or a payment.", employeeSummary: "The administrator confirmed it received the continuation referral." });
         metric(ctx, "handoff_acknowledged", c.id);
         notify(ctx, { key: `cobra_rcv:${r.id}`, userId: HR_ID, subject: `${c.caseNumber}: referral acknowledged`, preview: "The continuation workflow stays open with the administrator.", caseId: c.id, eventType: "handoff" });
+      } else if (cmd.action === "send_notice") {
+        if (r.noticeSent) return { ok: true, message: `The election notice was already sent to ${r.beneficiaryName}.` };
+        if (r.state !== "received") throw new DomainError(422, "receive_first", "Acknowledge receipt before sending the election notice.");
+        return sendNotice(ctx, r);
       } else if (cmd.action === "request_info") {
         r.state = "exception";
         r.infoRequested = cmd.note || "Administrator needs more information.";
@@ -986,3 +981,20 @@ function ok(c: QleCase, message: string): CommandResult {
 
 export { executionSummary, afterLineConfirmed, today, localDate };
 export type { ScenarioState };
+
+/** Email the COBRA election notice to the beneficiary only (simulated). Used by HR and the administrator. */
+function sendNotice(ctx: Ctx, r: CobraReferral): CommandResult {
+  const s = ctx.s;
+  const c = findCase(s, r.caseId);
+  const n = cobraNotice(s, r);
+  r.noticeSent = { at: now(ctx), by: ctx.actor.id, to: n.to, subject: n.subject };
+  r.state = "notice_tracked";
+  r.noticeRef = `NTC-${r.id.toUpperCase()}`;
+  r.noticeStatus = `Election notice emailed to ${r.beneficiaryName} on ${fmtDateLong(n.noticeDate, true)} (simulated). Election due by ${fmtDateLong(n.electBy, true)}.`;
+  r.history.push({ at: now(ctx), actor: ctx.actor.id, state: "notice_tracked", note: `Election notice ${r.noticeRef} emailed to ${n.to} from the portal.` });
+  // Sent to the beneficiary only. Never shown to the employee.
+  s.outbox.push({ id: nextId(s, "nt"), key: `cobra_notice:${r.id}`, recipientUserId: r.beneficiaryPersonId, recipientEmail: r.private.email, recipientRole: "beneficiary", subject: n.subject, preview: cobraNoticeText(n).slice(0, 400), caseId: c.id, link: "/", eventType: "cobra_notice", createdAt: now(ctx), deliveryState: "simulated_delivered" });
+  audit(ctx, { caseId: c.id, type: "cobra.notice_sent", summary: `${ctx.actor.name} emailed the COBRA election notice ${r.noticeRef} to ${r.beneficiaryName} (${n.to}) from the portal. Election due ${fmtDateLong(n.electBy, true)}; coverage may continue through ${fmtDateLong(n.coverageThrough, true)}.` });
+  refreshCompletion(ctx, c);
+  return { ok: true, message: `COBRA election notice sent to ${r.beneficiaryName} at ${n.to} (simulated email).` };
+}

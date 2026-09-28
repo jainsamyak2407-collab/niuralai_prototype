@@ -8,6 +8,7 @@ import { COBRA } from "./labels";
 import type { PlanOption } from "./ObservationSheet";
 import { ActionError, ReasonSheet, useSimAction, Why } from "./sim-kit";
 import { SimTag } from "./SimFrame";
+import { CobraNoticeButton } from "@/components/hr/ExecutionActions";
 import type { CobraRow } from "./types";
 
 const ROUTE: Record<string, string> = {
@@ -202,14 +203,16 @@ function ReferralActions({ r, action, onSheet }: { r: CobraRow; action: ReturnTy
         <Button size="sm" variant="outline" onClick={() => onSheet({ kind: "info", r })}>
           Request missing information…
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onSheet({ kind: "notice", r })} disabled={!received} aria-describedby={received ? undefined : `notice-why-${r.id}`}>
-          Record notice status…
-        </Button>
+        {r.notice ? <CobraNoticeButton referralId={r.id} beneficiary={r.beneficiaryName} notice={r.notice} sentAt={r.noticeSent?.at} asAdministrator /> : null}
       </div>
-      {received ? (
-        <p className="text-xs text-muted">Receipt acknowledged <DateText time={r.receivedAt ?? null} />.</p>
+      {r.noticeSent ? (
+        <p className="text-xs text-muted">
+          Election notice emailed to {r.beneficiaryName} ({r.noticeSent.to}) <DateText time={r.noticeSent.at} />. Election due by <DateText date={r.notice?.electBy ?? null} />.
+        </p>
+      ) : received ? (
+        <p className="text-xs text-muted">Receipt acknowledged <DateText time={r.receivedAt ?? null} />. Next: send the election notice to {r.beneficiaryName}.</p>
       ) : (
-        <Why id={`notice-why-${r.id}`}>Acknowledge receipt before recording a notice.</Why>
+        <Why>Acknowledge receipt, then send the election notice.</Why>
       )}
     </div>
   );

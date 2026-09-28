@@ -205,7 +205,7 @@ export const command = z.discriminatedUnion("type", [
   z.object({ type: z.literal("ops.publishAccepted"), ...base, batchId: z.string() }),
   z.object({ type: z.literal("ops.payrollInstruction"), ...base, instructionId: z.string(), outcome: z.enum(["accept", "reject"]), reason: z.string().max(300).optional() }),
   z.object({ type: z.literal("ops.payrollPost"), ...base, runId: z.string(), override: z.object({ benefit, amountCents: z.number().int() }).optional() }),
-  z.object({ type: z.literal("ops.cobra"), ...base, referralId: z.string(), action: z.enum(["acknowledge", "request_info", "notice"]), note: z.string().max(300).optional() }),
+  z.object({ type: z.literal("ops.cobra"), ...base, referralId: z.string(), action: z.enum(["acknowledge", "request_info", "notice", "send_notice"]), note: z.string().max(300).optional() }),
   z.object({ type: z.literal("ops.clock"), ...base, advance: z.enum(["plus_hour", "next_batch", "plus_day", "next_payday"]) }),
   z.object({
     type: z.literal("ops.preset"),
