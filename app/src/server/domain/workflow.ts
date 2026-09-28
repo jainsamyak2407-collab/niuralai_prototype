@@ -41,6 +41,7 @@ const OPS_ROLES: Record<string, Role[]> = {
   "ops.clock": ["demo_operator"],
   "ops.preset": ["demo_operator"],
   "ops.bounce": ["demo_operator"],
+  "ops.rateChange": ["demo_operator"],
   "ops.reset": ["demo_operator"],
 };
 
@@ -275,7 +276,36 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
           internalOnly: false,
         });
       }
-      if (c.eventCode === "divorce" && c.facts.direction === "remove_from_nexa" && ev.checks.find((k) => k.id === "spouse_covered")?.result === "passed") openCobraReferral(ctx, c);
+      if (c.eventCode === "divorce" && (c.facts.direction === "remove_from_nexa" || c.facts.direction === "both") && ev.checks.find((k) => k.id === "spouse_covered")?.result === "passed") openCobraReferral(ctx, c);
+      if (c.eventCode === "divorce" && c.facts.direction === "both" && !c.linkedCaseIds.length) {
+        // Linked, independent case for the coverage lost under the former spouse's plan.
+        const n2 = (s.counters.case = (s.counters.case ?? 0) + 1);
+        const linked: QleCase = {
+          ...structuredClone(c),
+          id: nextId(s, "case"),
+          caseNumber: `QLE-2026-0${n2}`,
+          eventCode: "loss_of_other_coverage",
+          status: "draft",
+          version: 1,
+          facts: { lossReason: "divorce_separation", lostCoveragePersonIds: [], explanation: `Linked to ${c.caseNumber} (divorce).` },
+          elections: [],
+          evaluation: null,
+          revisions: [],
+          receipt: null,
+          approvals: [],
+          lines: [],
+          ownerId: EMPLOYEE_ID,
+          backupOwnerId: HR_ID,
+          linkedCaseIds: [c.id],
+          checkResolutions: {},
+          createdAt: now(ctx),
+          updatedAt: now(ctx),
+        };
+        s.cases.push(linked);
+        c.linkedCaseIds.push(linked.id);
+        reevaluate(ctx, linked);
+        audit(ctx, { caseId: c.id, type: "case.linked", summary: `Linked loss-of-coverage draft ${linked.caseNumber} created for the coverage lost under the former spouse's plan.`, employeeSummary: `We started a linked request, ${linked.caseNumber}, for the coverage you lost. Complete it separately; it has its own dates.` });
+      }
       const copy =
         c.eventCode === "birth"
           ? `Congratulations on your new arrival. Your request ${c.caseNumber} has been received. We will keep you updated as the coverage change is confirmed.`
@@ -793,6 +823,28 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       }
       audit(ctx, { caseId: n.caseId, type: "notification.bounced", summary: `Simulated bounce: ${n.subject}` });
       return { ok: true, message: "Bounce simulated. An alternate-contact task was created." };
+    }
+    case "ops.rateChange": {
+      // A published rule or rate change flags affected cases for review. It never
+      // rewrites an approved decision; the frozen approval keeps its rule snapshot.
+      const affected = s.cases.filter((c) => !c.background && !c.completedAt && ["submitted", "under_review", "needs_information", "approved"].includes(c.status));
+      for (const c of affected) {
+        addTask(ctx, {
+          caseId: c.id,
+          kind: "specialist_review",
+          title: "Rule or rate version changed",
+          reason: `New configuration published: ${cmd.note}. This case was evaluated under ${c.evaluation?.ruleSnapshot.map((r) => `${r.id}@${r.version}`).join(", ") ?? "earlier rules"}.`,
+          nextAction: c.status === "approved" ? "Review the impact. The approved decision stays as approved unless a new version is reapproved." : "Recalculate and review before approving.",
+          ownerId: HR_ID,
+          backupOwnerId: HR_BACKUP,
+          dueAt: addBusinessDays(now(ctx), 1),
+          blocking: c.status !== "approved",
+          internalOnly: true,
+        });
+        audit(ctx, { caseId: c.id, type: "config.changed", summary: `Configuration change flagged for review: ${cmd.note}. Approved decisions are not silently rewritten.` });
+      }
+      audit(ctx, { caseId: null, type: "config.published", summary: `Simulated rule/rate publication: ${cmd.note}. ${affected.length} open case(s) flagged for review.` });
+      return { ok: true, message: `${affected.length} open case(s) flagged for review. Approved decisions keep their frozen rule snapshot.` };
     }
     case "ops.reset":
       throw new DomainError(400, "reset_handled_by_store", "Reset is handled by the store.");

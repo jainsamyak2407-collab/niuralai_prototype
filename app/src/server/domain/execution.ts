@@ -411,7 +411,7 @@ export function createInstruction(ctx: Ctx, c: QleCase, benefit: Benefit, oldCen
     id: nextId(s, "pi"),
     caseId: c.id,
     benefit,
-    state: noChange ? "verified_no_change" : calc.adjustmentCents !== 0 ? "approval_needed" : "scheduled",
+    state: noChange ? "verified_no_change" : calc.adjustmentCents !== 0 || calc.needsReview ? "approval_needed" : "scheduled",
     targetRunId: run.id,
     previousRecurringCents: oldCents,
     newRecurringCents: newCents,
@@ -424,6 +424,9 @@ export function createInstruction(ctx: Ctx, c: QleCase, benefit: Benefit, oldCen
     correctionOf,
   };
   if (s.instructions.some((i) => i.operationKey === inst.operationKey)) return s.instructions.find((i) => i.operationKey === inst.operationKey)!;
+  if (Math.abs(inst.adjustmentCents) > 50000) {
+    inst.adjustmentBasis += " Large adjustment: payroll reviews an installment or alternate collection arrangement. A negative net paycheck is never forced.";
+  }
   s.instructions.push(inst);
   if (inst.state === "approval_needed") {
     addTask(ctx, {

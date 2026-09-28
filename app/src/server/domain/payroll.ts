@@ -37,6 +37,7 @@ export interface AdjustmentCalc {
   lines: { month: string; obligationCents: Cents; collectedCents: Cents; laterRecurringCents: Cents }[];
   forecastAssumesScheduled: boolean;
   basis: string;
+  needsReview: boolean; // change reaches back before the payroll history on file
 }
 
 /**
@@ -62,7 +63,18 @@ export function computeAdjustment(args: {
   let total = 0;
   let forecast = false;
   if (m > lastMonth) {
-    return { targetRun, adjustmentCents: 0, lines, forecastAssumesScheduled: false, basis: "No affected pay run before the target run. No catch-up needed." };
+    return { targetRun, adjustmentCents: 0, lines, forecastAssumesScheduled: false, basis: "No affected pay run before the target run. No catch-up needed.", needsReview: false };
+  }
+  const historyStart = ledger.filter((d) => d.benefit === benefit).map((d) => d.allocatedMonth).sort()[0];
+  if (historyStart && m < historyStart && oldCents !== newCents) {
+    return {
+      targetRun,
+      adjustmentCents: 0,
+      lines,
+      forecastAssumesScheduled: false,
+      needsReview: true,
+      basis: `The change reaches back to ${fmtMonth(m)}, before the payroll history on file. Payroll review required: no automatic catch-up or refund. Carrier premium credit, employee refund, claims and prior-year tax effects are reviewed separately.`,
+    };
   }
   while (m <= lastMonth) {
     const obligation = monthObligation(m, changeDate, oldCents, newCents);
@@ -93,7 +105,7 @@ export function computeAdjustment(args: {
     adjustment === 0
       ? `No catch-up needed. ${parts}.`
       : `${adjustment > 0 ? "Catch-up" : "Refund proposal"} ${fmtMoney(Math.abs(adjustment))} on ${fmtDateLong(targetRun.payday, true)}. ${parts}.${forecast ? " Forecast: assumes the scheduled deduction at the old amount posts; recalculated from the posted ledger before authorization." : ""}`;
-  return { targetRun, adjustmentCents: adjustment, lines, forecastAssumesScheduled: forecast, basis };
+  return { targetRun, adjustmentCents: adjustment, lines, forecastAssumesScheduled: forecast, basis, needsReview: false };
 }
 
 export function priorAdjustments(s: ScenarioState, caseId: string, benefit: Benefit, excludeId?: string): Cents {

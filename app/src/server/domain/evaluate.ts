@@ -148,7 +148,7 @@ export function permittedPeople(s: ScenarioState, c: QleCase): { add: string[]; 
     const self = med ? [] : [c.employeeId];
     return { add: [...kids, ...spouse, ...self], remove: [] };
   }
-  if (c.eventCode === "divorce" && f.direction === "remove_from_nexa" && f.formerSpousePersonId && covered.has(f.formerSpousePersonId)) {
+  if (c.eventCode === "divorce" && (f.direction === "remove_from_nexa" || f.direction === "both") && f.formerSpousePersonId && covered.has(f.formerSpousePersonId)) {
     return { add: [], remove: [f.formerSpousePersonId] };
   }
   if (c.eventCode === "loss_of_other_coverage" || c.eventCode === "medicaid_chip_loss") {
@@ -228,14 +228,14 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
   }
   if (c.eventCode === "divorce") {
     if (!f.direction) missing.push("Whether you are removing your former spouse or lost outside coverage");
-    if (f.direction === "remove_from_nexa" && !f.formerSpousePersonId) missing.push("The former spouse to remove");
+    if ((f.direction === "remove_from_nexa" || f.direction === "both") && !f.formerSpousePersonId) missing.push("The former spouse to remove");
   }
   if (c.eventCode === "loss_of_other_coverage") {
     if (!f.lostCoveragePersonIds?.length) missing.push("Who lost coverage");
     if (!f.lossReason) missing.push("Why the coverage ended");
   }
   const requested = elections.some((e) => e.enroll);
-  if (deep && !requested && !(c.eventCode === "divorce" && f.direction !== "remove_from_nexa")) missing.push("The benefit change you are requesting");
+  if (deep && !requested && !(c.eventCode === "divorce" && f.direction !== "remove_from_nexa" && f.direction !== "both")) missing.push("The benefit change you are requesting");
   checks.push(
     check(
       "intake",
@@ -390,9 +390,10 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
     const dir = f.direction;
     if (dir === "lost_outside_coverage") {
       checks.push(check("direction", "Direction of the change", "not_applicable", "You lost coverage under your former spouse's plan. This routes to the loss-of-coverage flow. No Nexa termination and no Nexa COBRA referral.", "R-DIV-END", { direction: dir }, false));
-    } else if (dir === "not_sure" || dir === "both") {
-      checks.push(check("direction", "Direction of the change", "needs_review", dir === "both" ? "Both situations apply: a linked loss-of-coverage case is needed with its own plan authority and dates." : "Not sure which applies: HR will help confirm whose plan is affected.", "R-DIV-END", { direction: dir }));
-    } else if (dir === "remove_from_nexa") {
+    } else if (dir === "not_sure") {
+      checks.push(check("direction", "Direction of the change", "needs_review", "Not sure which applies: HR will help confirm whose plan is affected.", "R-DIV-END", { direction: dir }));
+    } else if (dir === "remove_from_nexa" || dir === "both") {
+      if (dir === "both") checks.push(check("direction", "Direction of the change", "passed", "Both apply. This case removes the former spouse from Nexa; a linked loss-of-coverage case with its own plan authority and dates is created at submission.", "R-DIV-END", { direction: dir }, false));
       checks.push(
         check(
           "divorce_final",
@@ -525,7 +526,7 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
   const costs: CostLine[] = [];
   const permittedPlanIds = Object.fromEntries(BENEFITS.map((b) => [b, plansFor(b).map((p) => p.id)])) as Record<Benefit, string[]>;
   const removal = c.eventCode === "divorce";
-  const canPropose = !assisted && !(c.eventCode === "divorce" && f.direction !== "remove_from_nexa");
+  const canPropose = !assisted && !(c.eventCode === "divorce" && f.direction !== "remove_from_nexa" && f.direction !== "both");
   let forecast: Evaluation["adjustmentForecast"] = null;
   if (canPropose) {
     for (const e of elections) {
