@@ -68,12 +68,12 @@ Identity provider, carrier transport and responses, payroll runs, COBRA administ
   route (direct-to-storage upload would fix it). No malware scanning (stated in the UI).
 - Emma rate budget is per server instance.
 
-## Autopilot (straight-through processing)
-`server/domain/autopilot.ts` runs after every command (skipped when the operator turns it off).
-It issues the same commands a person or simulator would: policy approval when every check passed
-and every document scored 100%, batch send, simulated carrier acceptance, payroll authorization
-up to USD 500 (not retroactive), COBRA referral and receipt. Status reads "Enrolled · pay update
-scheduled" once the carrier confirms; "Complete" still waits for the posted paycheck.
+## HR-led flow with AI review
+Every case gets an AI match score and an AI review card for HR (verified facts with document
+page and quote, rule checks with rule ids, and what is left to check). HR approves, one case or
+all 100% cases at once, and sends the batch file to the carrier (hr.sendBatch). Autopilot only
+makes the simulated carrier, payroll and COBRA administrator answer at once; it never approves.
+Choosing the document's value in a conflict corrects the form and lifts the score to 100%.
 
 ## Fixed after live verification
 Evidence upload failing after a reset (storage path reuse); Emma refusing to explain on-page

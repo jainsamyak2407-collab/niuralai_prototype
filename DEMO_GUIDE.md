@@ -20,7 +20,7 @@ decides role and employer; the browser cannot choose a role.
 Run each life event in its own scenario. The household differs: in the Birth scenario Arjun is
 not on Maya's plan, so a divorce started there has no one to remove (the details step says so).
 
-| Scenario | Starts | Household | Expected result (autopilot on) |
+| Scenario | Starts | Household | Expected result (HR approves and sends same day) |
 |---|---|---|---|
 | Birth | Sep 27, 2026, 9:00 AM ET | Maya employee-only. Arjun not enrolled. Ava born Sep 1. | Ava on medical from **Sep 1**. Medical USD 150 → 250. Only the Sep 15 paycheck was short → catch-up **USD 100**. Sep 30 paycheck: 250 + 100 + 12 + 4 = **USD 366**. Next run **USD 266**. |
 | Divorce | Sep 28, 2026, 9:00 AM ET | Maya, Arjun, Leela on family coverage. Divorce final Sep 15. | Arjun ends **Sep 30**. Maya and Leela stay. Total **USD 450 → 284** from the Oct 15 run. No September refund. COBRA referral sent and acknowledged. |
@@ -30,55 +30,53 @@ Reset: **Reset demo** button in the top bar (any role). Pick which scenarios to 
 or all three), autopilot on or off, then which scenario to open and as whom (Maya, Daniel or the
 demo operator). Only the chosen scenarios go back to the start.
 
-## Autopilot (on by default)
-Demo controls → Autopilot. When a case is clean, the system does the follow-up work itself,
-through the same checks and audit trail as the manual steps:
-- Approves the case when every check passed and every document is an **AI match of 100%**.
-- Sends the change to the carrier and records a simulated carrier confirmation.
-- Authorizes payroll catch-ups up to USD 500 and applies them to the next run.
-- Sends the COBRA referral (address on file) and records the administrator's receipt.
-
-It stops for a person when a document is under 100%, a check needs review, the carrier returns
-a different result, or the payroll adjustment is large or retroactive.
-
-Status after submit on a clean case: **Enrolled · pay update scheduled** (divorce: **Removal
-confirmed · pay update scheduled**). The case turns **Complete** once the paycheck with the new
-deduction posts: operator → Payroll → Post the run (or Advance to next payday).
+## The flow
+1. **Maya** submits the request with her document. The AI reads it and gives an **AI match**
+   score. A 100% document is verified automatically; anything lower shows what differs.
+2. **Daniel** opens the case. The **AI review** card at the top shows the score, what was
+   verified (each fact with its document page and quote, each rule check with its rule id) and
+   what is left for him to check. He approves: one case, or **Approve all ready (N)** in the queue
+   for every case at 100% with nothing open.
+3. **Daniel** clicks **Send batch file to carrier** (on the case or in the queue) instead of
+   waiting for the 10:00 PM file.
+4. With autopilot on, the simulated carrier answers at once: the status turns **Enrolled · pay
+   update scheduled** (divorce: **Removal confirmed · pay update scheduled**). Payroll catch-ups up
+   to USD 500 and the COBRA referral receipt are also simulated. Nothing is approved without HR.
+5. The case turns **Complete** once the paycheck with the new deduction posts: operator →
+   Payroll → Post the run (or Advance to next payday).
 
 ## Wrong date on the form? Let the document fix it
 If Maya types a wrong date (say Sep 23) and uploads the right document (Sep 15), the AI flags the
-difference at 60%. She clicks **Use the document's date**: the form is corrected, the AI match
-goes to **100%**, the document is verified automatically, and after Submit the case runs straight
-through. If she keeps her own date instead, the score stays below 100% and Daniel reviews it.
+difference at 60%. She clicks **Use the document's date**: the form is corrected and the AI match
+goes to **100%**. Daniel's AI review shows "form corrected from September 23, 2026". If she keeps
+her own date, the score stays below 100% and the difference is listed for Daniel to check.
 
-## Daniel's queue: approve all 100% cases at once
-Life events shows an **AI match** column. **Approve all ready (N)** approves every case at 100%
-with every check passed, in one confirmed step. Cases below 100% (for example Chris Wong, 60%,
-date difference) stay in the queue for review. Sample cases (Priya Nair, Tom Becker, Lena Park,
-Chris Wong) are seeded queue examples: approving one records the decision only.
+## Daniel's queue
+Life events shows an **AI match** column, **Approve all ready (N)** and **Send batch file to
+carrier (N)**. Cases below 100% (for example Chris Wong, 60%, date difference) stay for review.
+Sample cases (Priya Nair, Tom Becker, Lena Park, Chris Wong) are seeded queue examples: approving
+one records the decision only.
 
-## Main walkthrough (autopilot on, about 3 minutes per flow)
-1. **Maya** (Birth scenario): Benefits → Report a life event → Birth. Add Ava Shah, born
-   2026-09-01. Documents step → Demo documents → download the happy-path hospital record and
-   upload it: **AI match 100%, verified automatically**. Benefit changes: medical, Aetna Standard,
-   USD 150 → 250. Review → attest → Submit.
-2. The tracker already shows HR approved, sent to the provider, confirmed, pay update scheduled.
-   **Daniel** sees the case approved by "Rules engine (straight-through)" with the full audit.
-3. **Operator** → Payroll → post the Sep 30 run: USD 366. Maya's tracker shows **Complete**.
-4. Problem path: upload the Sep 2 record instead. The AI flags the date conflict, the score drops
-   below 100%, and the case waits for Daniel.
+## Walkthrough (about 3 minutes per flow)
+1. **Reset demo** → all three, autopilot on → open Birth as Maya.
+2. **Maya**: Report a life event → Birth. Add Ava Shah, born 2026-09-01. Documents → download the
+   happy-path hospital record and upload it: **AI match 100%**. Medical, Aetna Standard,
+   USD 150 → 250. Review → Submit.
+3. **Daniel** (account menu → Switch role): Life events → the case → read the AI review →
+   **Approve this version** (or Approve all ready in the queue) → **Send batch file to carrier**.
+4. Status: **Enrolled · pay update scheduled**. Operator → Payroll → post the Sep 30 run: USD 366.
+   Maya's tracker shows **Complete**.
 
 Divorce (Divorce scenario): Remove from Nexa → final Sep 15, Arjun, no child order → upload the
-happy-path summary → Submit. Arjun's end date is confirmed, COBRA referral is sent and received.
-Post the Oct 15 run (USD 284) → Complete. Maya never sees Arjun's address or COBRA details.
+happy-path summary → Submit. Daniel approves and sends the batch; the COBRA referral is sent and
+received. Post the Oct 15 run (USD 284) → Complete. Maya never sees Arjun's COBRA details.
 
 Loss (Loss scenario): Other health coverage → Coverage from another plan ended → Arjun,
-employment ended, coverage ends Oct 31 → upload the notice naming Arjun → Submit. Confirmed from
-Nov 1 (not active today). Post the Nov 13 run (USD 332) → Complete.
+employment ended, coverage ends Oct 31 → upload the notice naming Arjun → Submit. Daniel approves
+and sends the batch. Confirmed from Nov 1 (not active today). Post the Nov 13 run (USD 332).
 
-## Manual walkthrough (autopilot off: shows each hand-off)
-Turn autopilot off in Demo controls. Daniel clicks **Approve this version**. Operator: Advance
-to next batch (10:00 PM) → Carrier inbox → Acknowledge transport → Accept file → Publish. Arm
+## Manual carrier (autopilot off: shows each simulated hand-off)
+Turn autopilot off in Demo controls. Daniel approves and sends the batch. Operator: Carrier inbox → Acknowledge transport → Accept file → Publish. Arm
 "Carrier returns next-month start" first to show reconciliation catching "requested Sep 1,
 carrier shows Oct 1"; Daniel → Send correction for this line only. Daniel authorizes the payroll
 catch-up; operator applies the instruction and posts the run. In the birth flow, a late carrier
@@ -95,7 +93,7 @@ completes). Presets change the next simulated response only; they never complete
 | Flow | Happy path | Problem document — what the reading surfaces |
 |---|---|---|
 | Birth | Hospital record, Ava born Sep 1 | Record says Sep 2 → date conflict; Maya picks which is correct |
-| Divorce | Fact summary, final Sep 15 | Summary says Sep 22 → date conflict; HR cannot approve until resolved |
+| Divorce | Fact summary, final Sep 15 | Summary says Sep 22 → date conflict; Maya picks which is correct; HR sees it in the AI review |
 | Loss | Notice naming Arjun, ends Oct 31 | Notice does not name Arjun → blocking check; HR requests a named notice; Maya replies with the happy-path file |
 
 Posting a future pay run in the simulator moves the business clock to that payday first.

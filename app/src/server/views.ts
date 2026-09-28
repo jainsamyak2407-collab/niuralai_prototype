@@ -1,4 +1,5 @@
 import { caseAiMatch, readyAt100 } from "@/server/domain/autopilot";
+import { aiReview } from "@/server/ai/review";
 import type {
   AuditEvent,
   Benefit,
@@ -404,7 +405,7 @@ export async function hrQueueView(user: DemoUser, scenario: ScenarioId) {
   const order = { high: 0, medium: 1, low: 2 };
   rows.sort((a, b) => Number(a.completed || a.terminal) - Number(b.completed || b.terminal) || order[a.risk] - order[b.risk] || (a.nextDue ?? "9").localeCompare(b.nextDue ?? "9"));
   const counts = Object.fromEntries((["action", "employee", "carrier", "payroll", "continuation"] as QueueTab[]).map((t) => [t, rows.filter((r) => r.tabs.includes(t)).length])) as Record<QueueTab, number>;
-  return { now, rows, counts };
+  return { now, rows, counts, queuedRecords: queuedRecords(s) };
 }
 export type HrQueueRow = Awaited<ReturnType<typeof hrQueueView>>["rows"][number];
 
@@ -447,7 +448,13 @@ export async function hrCaseView(user: DemoUser, scenario: ScenarioId, caseId: s
     notifications: s.outbox.filter((n) => n.caseId === c.id),
     lossReasonLabel: c.facts.lossReason ? LOSS_REASON_LABEL[c.facts.lossReason] : null,
     nextBatchAt: nextBatchAt(s),
+    queuedRecords: queuedRecords(s),
+    aiReview: aiReview(s, c, evaluation),
   };
+}
+/** Approved changes waiting for the next carrier batch file (all cases). */
+function queuedRecords(s: ScenarioState) {
+  return s.txns.filter((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded).length;
 }
 export type HrCaseView = Awaited<ReturnType<typeof hrCaseView>>;
 

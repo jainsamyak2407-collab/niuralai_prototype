@@ -17,6 +17,7 @@ import {
 import { requireSession } from "@/server/guard";
 import { hrQueueView, type QueueTab } from "@/server/views";
 import { AiMatchPill, BulkApprove } from "@/components/hr/BulkApprove";
+import { SendBatchButton } from "@/components/hr/ExecutionActions";
 
 const TABS: { id: QueueTab | "all"; label: string }[] = [
   { id: "action", label: "Needs my action" },
@@ -76,7 +77,12 @@ export default async function QueuePage({
       <Section
         title={TABS.find((t) => t.id === tab)!.label}
         description={ready.length ? `${ready.length} case${ready.length === 1 ? " is" : "s are"} at AI match 100% with every check passed.` : undefined}
-        actions={<BulkApprove ready={ready} />}
+        actions={
+          <span className="flex flex-wrap items-center gap-2">
+            <BulkApprove ready={ready} />
+            <SendBatchButton records={v.queuedRecords} />
+          </span>
+        }
         bodyClassName=""
       >
         {rows.length === 0 ? (

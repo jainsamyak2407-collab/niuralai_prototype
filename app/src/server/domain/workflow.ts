@@ -497,6 +497,11 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       audit(ctx, { caseId: null, type: "hr.bulk_approved", summary: `Bulk approval by ${ctx.actor.name}: ${approved.join(", ")}.${skipped.length ? ` Left for review: ${skipped.join(", ")}.` : ""}` });
       return { ok: true, message: `Approved ${approved.length} case${approved.length === 1 ? "" : "s"} at AI match 100%.${skipped.length ? ` ${skipped.length} left for review.` : ""}` };
     }
+    case "hr.sendBatch": {
+      const b = runBatch(ctx);
+      audit(ctx, { caseId: null, type: "hr.batch_sent", summary: `${ctx.actor.name} sent batch file ${b?.id} to the carrier with ${b?.recordCount} record(s), ahead of the nightly run.` });
+      return { ok: true, entityId: b?.id, message: `Batch file sent to the carrier with ${b?.recordCount} record${b?.recordCount === 1 ? "" : "s"}. Coverage is confirmed when the carrier's record matches.` };
+    }
     case "hr.decide": {
       const c = ownCase(ctx, cmd.caseId);
       expectVersion(c, cmd.expectedVersion);
@@ -888,8 +893,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
     }
     case "ops.autopilot": {
       s.autopilot = cmd.on;
-      audit(ctx, { caseId: null, type: "demo.autopilot", summary: cmd.on ? "Autopilot on: clean cases are approved by policy; simulated carrier, payroll and COBRA respond at once." : "Autopilot off: every step waits for a person or a simulator click." });
-      return { ok: true, message: cmd.on ? "Autopilot on. Clean cases run straight through; problems still stop for a person." : "Autopilot off. Every step is manual." };
+      audit(ctx, { caseId: null, type: "demo.autopilot", summary: cmd.on ? "Autopilot on: simulated carrier, payroll and COBRA respond at once. HR still approves and sends the batch file." : "Autopilot off: every simulated response waits for a simulator click." });
+      return { ok: true, message: cmd.on ? "Autopilot on. Simulated systems respond at once; HR still approves and sends the batch file." : "Autopilot off. Every simulated response waits for a click." };
     }
     case "ops.rateChange": {
       // A published rule or rate change flags affected cases for review. It never

@@ -600,3 +600,44 @@ export function InternalNoteForm({ caseId }: { caseId: string }) {
     </form>
   );
 }
+
+// ---------------- Carrier batch file: HR sends it now ----------------
+
+export function SendBatchButton({ records }: { records: number }) {
+  const [open, setOpen] = useState(false);
+  const { run, pending, result, clear } = useHrCommand();
+  if (!records) return null;
+  const go = async () => {
+    const r = await run({ type: "hr.sendBatch" });
+    if (r.ok) setOpen(false);
+  };
+  return (
+    <>
+      <Button size="sm" onClick={() => setOpen(true)}>
+        Send batch file to carrier ({records})
+      </Button>
+      <div className="text-left">
+        <ConfirmModal
+          open={open}
+          title="Send the batch file to the carrier?"
+          confirmLabel="Send batch file"
+          pending={pending}
+          onCancel={() => {
+            setOpen(false);
+            clear();
+          }}
+          onConfirm={() => void go()}
+        >
+          <p>
+            Sends {records} approved change{records === 1 ? "" : "s"} to the
+            carrier now instead of waiting for the 10:00 p.m. file. Coverage is
+            confirmed only when the carrier&apos;s record matches.
+          </p>
+          <div className="mt-3">
+            <CommandError result={result} onRetry={() => void go()} />
+          </div>
+        </ConfirmModal>
+      </div>
+    </>
+  );
+}

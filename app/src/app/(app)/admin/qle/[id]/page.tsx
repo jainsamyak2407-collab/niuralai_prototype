@@ -33,6 +33,7 @@ import {
   nameLookup,
 } from "@/components/hr/case/shared";
 import { SummarySection } from "@/components/hr/case/SummarySection";
+import { AiReviewSection } from "@/components/hr/case/AiReviewSection";
 import { ChecksSection } from "@/components/hr/case/ChecksSection";
 import { EvidenceSection } from "@/components/hr/case/EvidenceSection";
 import {
@@ -134,6 +135,7 @@ export default async function HrCasePage({
     v.txns.some((t) => t.batch?.transport === "unknown");
 
   const nav = [
+    { id: "ai-review", label: "AI review" },
     { id: "summary", label: "Summary" },
     { id: "checks", label: "Checks", attention: decide && blockers.length > 0 },
     { id: "evidence", label: `Evidence (${v.evidence.length})` },
@@ -395,6 +397,7 @@ export default async function HrCasePage({
       <SectionNav items={nav} />
 
       <div className="flex flex-col gap-4">
+        <AiReviewSection v={v} />
         <SummarySection v={v} />
         <ChecksSection v={v} />
         <EvidenceSection v={v} suggestedItems={suggestedItems} />

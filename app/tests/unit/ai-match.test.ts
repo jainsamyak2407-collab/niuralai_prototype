@@ -27,7 +27,7 @@ async function divorceDraft(formDate: string) {
 }
 
 describe("AI match after resolving a conflict", () => {
-  it("choosing the document's date corrects the form, scores 100% and runs straight through", async () => {
+  it("choosing the document's date corrects the form and scores 100%, but HR still approves", async () => {
     freshStore(true);
     const id = await divorceDraft("2026-09-23");
     const fileId = await conflictDoc("divorce", id, "2026-09-15", "2026-09-23");
@@ -40,7 +40,7 @@ describe("AI match after resolving a conflict", () => {
     c = await caseById("divorce", id);
     expect(c.facts.eventDate).toBe("2026-09-15");
     await ok("u_maya", "divorce", { type: "case.submit", caseId: id, expectedVersion: c.version, attestation: true });
-    expect((await caseById("divorce", id)).status).toBe("approved");
+    expect((await caseById("divorce", id)).status).toBe("submitted");
   });
 
   it("keeping the form's date against the document stays below 100% and waits for HR", async () => {
@@ -88,5 +88,27 @@ describe("bulk approval", () => {
     const out = await run("u_daniel", "birth", { type: "hr.bulkApprove", caseIds: [chris.id, orbit.id] });
     expect(out.status).toBe(422);
     expect((await state("birth")).cases.find((x) => x.id === orbit.id)!.status).toBe("under_review");
+  });
+});
+
+describe("AI review summary for HR", () => {
+  it("explains a 100% case with verified sources, and lists what to check otherwise", async () => {
+    const { aiReview } = await import("@/server/ai/review");
+    const { evaluateCase } = await import("@/server/domain/evaluate");
+    freshStore(false);
+    const id = await divorceDraft("2026-09-23");
+    const fileId = await conflictDoc("divorce", id, "2026-09-15", "2026-09-23");
+    let s = await state("divorce");
+    let c = s.cases.find((x) => x.id === id)!;
+    let r = aiReview(s, c, evaluateCase(s, c));
+    expect(r.score).toBe(60);
+    expect(r.toCheck.some((x) => x.includes("form shows September 23, 2026"))).toBe(true);
+    await ok("u_maya", "divorce", { type: "case.confirmFact", caseId: id, expectedVersion: c.version, fileId, factIndex: 0, choice: "document" });
+    s = await state("divorce");
+    c = s.cases.find((x) => x.id === id)!;
+    r = aiReview(s, c, evaluateCase(s, c));
+    expect(r.score).toBe(100);
+    expect(r.verified.some((x) => x.source.includes("form corrected from September 23, 2026"))).toBe(true);
+    expect(r.verified.some((x) => x.source.startsWith("Rule "))).toBe(true);
   });
 });

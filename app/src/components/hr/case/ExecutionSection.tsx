@@ -22,6 +22,7 @@ import {
   LineActions,
   PayrollCorrectionButton,
   ResolveTaskButton,
+  SendBatchButton,
 } from "../ExecutionActions";
 import {
   BENEFIT,
@@ -53,8 +54,9 @@ export function CoverageSection({ v }: { v: HrCaseView }) {
       id="coverage"
       title="Carrier delivery and coverage"
       actions={
-        <span className="text-[13px] text-muted">
+        <span className="flex flex-wrap items-center gap-3 text-[13px] text-muted">
           Next nightly batch: <DateText time={v.nextBatchAt} />
+          <SendBatchButton records={v.queuedRecords} />
         </span>
       }
       bodyClassName=""

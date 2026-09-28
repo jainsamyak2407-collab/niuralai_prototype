@@ -2,22 +2,31 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { attachEvidence, caseById, freshStore, ok, state } from "./helpers";
 import type { ScenarioId } from "@/lib/contracts/domain";
 
-// Autopilot: a clean case runs from submission to "enrolled, pay update scheduled"
-// with no manual step. Problems still stop for a person.
+// Autopilot: HR approves and sends the batch file; the simulated carrier, payroll and
+// COBRA administrator then answer at once. Nothing is approved without HR.
+async function approveAndSend(scenario: ScenarioId, caseId: string) {
+  const c = await caseById(scenario, caseId);
+  expect(c.status).toBe("submitted"); // never approved without HR
+  await ok("u_daniel", scenario, { type: "hr.approve", caseId, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo });
+  const s = await state(scenario);
+  if (s.txns.some((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded)) await ok("u_daniel", scenario, { type: "hr.sendBatch" });
+}
+
 describe("autopilot", () => {
   beforeEach(() => freshStore(true));
 
-  it("birth: straight-through approval, instant carrier confirmation, catch-up authorized by policy", async () => {
+  it("birth: HR approves and sends the batch; carrier confirms at once; catch-up authorized by policy", async () => {
     const d = await ok("u_maya", "birth", { type: "case.createDraft", eventCode: "birth" });
     let c = await caseById("birth", d.entityId!);
     await ok("u_maya", "birth", { type: "case.updateDraft", caseId: c.id, expectedVersion: c.version, facts: { children: [{ personId: "p_child_a", firstName: "Ava", lastName: "Shah", dob: "2026-09-01", ssnStatus: "pending" }] } });
     await markAutoVerified("birth", c.id);
     c = await caseById("birth", c.id);
     await ok("u_maya", "birth", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    await approveAndSend("birth", c.id);
     const s = await state("birth");
     c = s.cases.find((x) => x.id === c.id)!;
     expect(c.status).toBe("approved");
-    expect(c.approvals[0].actor).toBe("system_rules");
+    expect(c.approvals[0].actor).toBe("u_daniel");
     expect(c.lines.every((l) => l.coverageState === "confirmed_current")).toBe(true);
     const inst = s.instructions.find((i) => i.caseId === c.id)!;
     // Approved Sep 27, before the Sep 30 cutoff: only the Sep 15 paycheck was short (USD 100).
@@ -31,13 +40,14 @@ describe("autopilot", () => {
     expect(s2.cases.find((x) => x.id === c.id)!.completedAt).toBeTruthy();
   });
 
-  it("divorce: removal confirmed and COBRA referral sent and acknowledged automatically", async () => {
+  it("divorce: after HR approves and sends, removal confirmed and COBRA referral sent and acknowledged", async () => {
     const d = await ok("u_maya", "divorce", { type: "case.createDraft", eventCode: "divorce" });
     let c = await caseById("divorce", d.entityId!);
     await ok("u_maya", "divorce", { type: "case.updateDraft", caseId: c.id, expectedVersion: c.version, facts: { direction: "remove_from_nexa", divorceFinal: true, eventDate: "2026-09-15", formerSpousePersonId: "p_arjun", childCoverageOrder: "none", formerSpouseContactKnown: true } });
     await markAutoVerified("divorce", c.id);
     c = await caseById("divorce", c.id);
     await ok("u_maya", "divorce", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    await approveAndSend("divorce", c.id);
     const s = await state("divorce");
     c = s.cases.find((x) => x.id === c.id)!;
     expect(c.status).toBe("approved");
@@ -47,7 +57,7 @@ describe("autopilot", () => {
     expect((await caseById("divorce", c.id)).completedAt).toBeTruthy();
   });
 
-  it("loss: enrolled from Nov 1 automatically; the problem document still stops for HR", async () => {
+  it("loss: after HR approves and sends, confirmed from Nov 1", async () => {
     const facts = { lostCoveragePersonIds: ["p_arjun"], lossReason: "employment_ended", lastWorkday: "2026-10-12", coverageEndDate: "2026-10-31" };
     const d = await ok("u_maya", "loss", { type: "case.createDraft", eventCode: "loss_of_other_coverage" });
     let c = await caseById("loss", d.entityId!);
@@ -55,6 +65,7 @@ describe("autopilot", () => {
     await markAutoVerified("loss", c.id, "Arjun Shah");
     c = await caseById("loss", c.id);
     await ok("u_maya", "loss", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    await approveAndSend("loss", c.id);
     c = await caseById("loss", c.id);
     expect(c.status).toBe("approved");
     expect(c.lines.filter((l) => l.action === "add").every((l) => l.startDate === "2026-11-01" && l.coverageState !== "awaiting_confirmation")).toBe(true);
@@ -72,7 +83,7 @@ describe("autopilot", () => {
     expect((await caseById("loss", c.id)).status).toBe("submitted");
   });
 
-  it("a wrong carrier date still stops for HR, and the correction then runs automatically", async () => {
+  it("a wrong carrier date still stops for HR; HR sends the correction in the next batch", async () => {
     await ok("u_ops", "birth", { type: "ops.preset", preset: "carrier_wrong_start_date" });
     const d = await ok("u_maya", "birth", { type: "case.createDraft", eventCode: "birth" });
     let c = await caseById("birth", d.entityId!);
@@ -80,10 +91,12 @@ describe("autopilot", () => {
     await markAutoVerified("birth", c.id);
     c = await caseById("birth", c.id);
     await ok("u_maya", "birth", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    await approveAndSend("birth", c.id);
     c = await caseById("birth", c.id);
     const ava = c.lines.find((l) => l.personId === "p_child_a")!;
     expect(ava.coverageState).toBe("mismatch");
     await ok("u_daniel", "birth", { type: "hr.sendCorrection", caseId: c.id, lineId: ava.id });
+    await ok("u_daniel", "birth", { type: "hr.sendBatch" });
     c = await caseById("birth", c.id);
     expect(c.lines.every((l) => l.coverageState === "confirmed_current")).toBe(true);
   });

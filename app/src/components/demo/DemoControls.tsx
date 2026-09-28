@@ -105,23 +105,23 @@ export function DemoControls({
             Autopilot
           </span>
         }
-        description="Straight-through processing for clean cases. Uses the same checks and audit trail as the manual steps."
+        description="The simulated outside systems answer at once. HR still approves every case and sends the batch file to the carrier."
         actions={<StatusPill tone={autopilot ? "green" : "gray"}>{autopilot ? "On" : "Off"}</StatusPill>}
       >
         <div className="grid grid-cols-1 gap-4 text-[13px] text-ink-2 md:grid-cols-2">
           <div>
-            <p className="mb-1 text-xs text-muted">Runs on its own</p>
+            <p className="mb-1 text-xs text-muted">Runs on its own (simulated)</p>
             <ul className="list-disc space-y-0.5 pl-4">
-              <li>Approval when every check passed and every document is an AI match of 100%</li>
-              <li>Carrier send and a simulated carrier confirmation</li>
+              <li>Carrier receipt, file acceptance and member results after HR sends the batch file</li>
               <li>Payroll catch-ups up to USD 500, applied to the next run</li>
               <li>COBRA referral with an address on file, and its receipt</li>
             </ul>
           </div>
           <div>
-            <p className="mb-1 text-xs text-muted">Still stops for a person</p>
+            <p className="mb-1 text-xs text-muted">Always a person</p>
             <ul className="list-disc space-y-0.5 pl-4">
-              <li>A document under 100%, or any check that needs review</li>
+              <li>HR approval of every case, one by one or all 100% cases at once</li>
+              <li>Sending the batch file to the carrier</li>
               <li>A carrier mismatch, rejection or unknown delivery</li>
               <li>Larger or retroactive payroll adjustments</li>
               <li>Posting a pay run; a case completes once its paycheck posts</li>

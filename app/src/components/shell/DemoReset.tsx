@@ -107,8 +107,8 @@ export function DemoReset({ scenarioId }: { scenarioId: ScenarioId }) {
             <legend className="mb-2 text-sm text-ink">Autopilot</legend>
             <div className="flex flex-col gap-1">
               {[
-                { v: true, t: "On", d: "Clean cases are approved and confirmed automatically." },
-                { v: false, t: "Off", d: "Every step waits for a click, to show each hand-off." },
+                { v: true, t: "On", d: "Simulated carrier, payroll and COBRA answer at once. HR still approves and sends the batch." },
+                { v: false, t: "Off", d: "Every simulated answer waits for a click in the simulators." },
               ].map((o) => (
                 <label key={o.t} className="flex cursor-pointer items-start gap-3 rounded-[8px] px-2 py-1.5 hover:bg-fill">
                   <input type="radio" name={`${uid}-autopilot`} checked={autopilot === o.v} onChange={() => setAutopilot(o.v)} className="mt-1 accent-primary" />

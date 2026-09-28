@@ -5,11 +5,12 @@ import type { Ctx } from "./ctx";
 import { blockingOpen } from "./evaluate";
 import { execute } from "./workflow";
 
-// Autopilot (demo setting, on by default): straight-through processing for clean cases.
-// It issues the SAME commands a person or simulator would, through the same handlers,
-// so every step is validated and audited. It never forces an outcome: anything flagged
-// (a check needing review, a document under 100%, a carrier mismatch, a large payroll
-// adjustment, an unknown delivery) stops and waits for a person.
+// Autopilot (demo setting, on by default): the simulated outside systems respond at once.
+// HR still approves every case and sends the batch file to the carrier. After that, the
+// simulated carrier, payroll system and COBRA administrator answer through the SAME
+// commands a simulator click would issue, so every step is validated and audited.
+// Anything flagged (a carrier mismatch, a large payroll adjustment, an unknown delivery)
+// stops and waits for a person.
 
 export const RULES_ACTOR: DemoUser = {
   id: "system_rules",
@@ -61,13 +62,7 @@ export function runAutopilot(ctx: Ctx) {
   const cobra = userById("u_cobra")!;
   for (let round = 0; round < 12; round++) {
     let progressed = false;
-    // 1. Straight-through approval for clean cases.
-    for (const c of s.cases) {
-      if (readyAt100(s, c)) progressed = run(ctx, RULES_ACTOR, { type: "hr.approve", caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo }) || progressed;
-    }
-    // 2. Send approved changes now instead of waiting for 10 p.m.
-    if (s.txns.some((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded)) progressed = run(ctx, ops, { type: "ops.runBatch" }) || progressed;
-    // 3. Simulated carrier: transport receipt, file acceptance, member results, coverage.
+    // Approval and sending the batch file stay with HR. The simulated carrier: transport receipt, file acceptance, member results, coverage.
     for (const b of s.batches) {
       if (b.transport === "pending") progressed = run(ctx, carrier, { type: "ops.batchTransport", batchId: b.id, outcome: "received" }) || progressed;
       if (b.transport === "received" && b.fileValidation === "pending") progressed = run(ctx, carrier, { type: "ops.batchValidation", batchId: b.id, outcome: "accepted" }) || progressed;
@@ -77,12 +72,12 @@ export function runAutopilot(ctx: Ctx) {
     for (const t of s.txns) {
       if (t.route === "api" && !t.superseded && t.delivery === "acknowledged" && t.memberResult === "pending") progressed = run(ctx, carrier, { type: "ops.publishAccepted", batchId: t.id }) || progressed;
     }
-    // 4. Payroll: small adjustments authorized by policy; the payroll system applies the instruction.
+    // Payroll: small adjustments authorized by policy; the payroll system applies the instruction.
     for (const i of s.instructions) {
       if (i.state === "approval_needed" && Math.abs(i.adjustmentCents) <= AUTO_PAYROLL_LIMIT_CENTS && !i.adjustmentBasis.includes("Payroll review required")) progressed = run(ctx, RULES_ACTOR, { type: "hr.authorizePayroll", instructionId: i.id }) || progressed;
       if (i.state === "scheduled") progressed = run(ctx, ops, { type: "ops.payrollInstruction", instructionId: i.id, outcome: "accept" }) || progressed;
     }
-    // 5. COBRA: send the minimal referral once the removal is approved; the administrator acknowledges.
+    // COBRA: send the minimal referral once the removal is approved; the administrator acknowledges.
     for (const r of s.cobra) {
       const c = s.cases.find((x) => x.id === r.caseId);
       if (r.state === "review_needed" && c?.status === "approved" && r.contactRoute !== "contact_verification_needed") progressed = run(ctx, RULES_ACTOR, { type: "hr.sendCobraReferral", referralId: r.id, contactRoute: "verified_address_on_file" }) || progressed;
