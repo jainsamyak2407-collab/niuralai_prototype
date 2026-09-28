@@ -531,6 +531,10 @@ export async function hrIntegrationsView(user: DemoUser, scenario: ScenarioId) {
         return { id: t.id, caseId: c.id, caseNumber: c.caseNumber, approvedAt: c.approvals.filter((a) => !a.supersededAt).at(-1)?.at ?? null, summary: decodeOrder(t.order), benefit: t.order.benefit };
       })
       .filter((t) => s.cases.find((c) => c.id === t.caseId)?.employerId === user.employerId),
+    // Cases HR still has to approve; their 834 records appear in the next batch once approved.
+    awaitingApproval: hrScope(user, s)
+      .filter((c) => !c.background && ["submitted", "under_review", "needs_information"].includes(c.status))
+      .map((c) => ({ id: c.id, caseNumber: c.caseNumber, event: EVENT_LABEL[c.eventCode], employeeName: c.employeeName, aiMatch: caseAiMatch(s, c) })),
     apiTxns: s.txns.filter((t) => t.route === "api").map((t) => ({ id: t.id, caseNumber: s.cases.find((c) => c.id === t.caseId)!.caseNumber, summary: decodeOrder(t.order), delivery: t.delivery, memberResult: t.memberResult, apiReference: t.apiReference ?? null, sentAt: t.sentAt ?? null })),
     nextBatchAt: nextBatchAt(s),
     label: EDI_LABEL,

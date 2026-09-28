@@ -44,7 +44,7 @@ export default async function IntegrationsSimulatorPage({ searchParams }: { sear
       <SimBanner scenarioTitle={v.scenario.title} now={v.now} roleLabel={ROLE_LABEL[user.role] ?? user.role} />
       {tabs.length > 1 ? <SimTabs tabs={tabs} active={tab} base="/demo/integrations" /> : null}
 
-      {tab === "carrier" && v.carrier ? <CarrierInbox data={v.carrier} nextBatchAt={v.nextBatchAt} plans={plans} carriers={carrierNames()} /> : null}
+      {tab === "carrier" && v.carrier ? <CarrierInbox data={v.carrier} nextBatchAt={v.nextBatchAt} plans={plans} carriers={carrierNames()} showDraft={v.role === "demo_operator"} /> : null}
       {tab === "manual" && v.manual ? <ManualTasks rows={v.manual} now={v.now} /> : null}
       {tab === "payroll" && v.payroll ? <PayrollSim data={v.payroll} /> : null}
       {tab === "cobra" && v.cobra ? <CobraSim rows={v.cobra} plans={plans} isAdmin={user.role === "cobra_admin"} /> : null}

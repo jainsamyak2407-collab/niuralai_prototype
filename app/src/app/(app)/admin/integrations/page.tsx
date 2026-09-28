@@ -68,8 +68,25 @@ export default async function AdminIntegrationsPage() {
           bodyClassName=""
         >
           {v.pending.length === 0 ? (
-            <EmptyState icon={<FileStack />} title="No changes waiting">
-              When HR approves a medical change, its 834 record appears here and the file for the next batch is generated.
+            <EmptyState icon={<FileStack />} title={v.awaitingApproval.length ? "Nothing approved yet" : "No changes waiting"}>
+              {v.awaitingApproval.length ? (
+                <>
+                  Approve a case and its 834 records appear here with the generated file. Waiting for your approval:{" "}
+                  {v.awaitingApproval.map((c, i) => (
+                    <span key={c.id}>
+                      {i ? ", " : ""}
+                      <a href={`/admin/qle/${c.id}`} className="text-primary hover:underline">
+                        {c.caseNumber}
+                      </a>{" "}
+                      ({c.event}, {c.employeeName}
+                      {c.aiMatch !== null ? `, AI match ${c.aiMatch}%` : ""})
+                    </span>
+                  ))}
+                  .
+                </>
+              ) : (
+                "When HR approves a medical change, its 834 record appears here and the file for the next batch is generated. Dental and vision changes go to the carrier API right after approval (listed below)."
+              )}
             </EmptyState>
           ) : (
             <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:divide-x lg:divide-divider">

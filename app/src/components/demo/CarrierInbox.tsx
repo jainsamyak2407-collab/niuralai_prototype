@@ -121,11 +121,13 @@ export function CarrierInbox({
   nextBatchAt,
   plans,
   carriers,
+  showDraft = false,
 }: {
   data: CarrierData;
   nextBatchAt: string;
   plans: PlanOption[];
   carriers: CarrierNames;
+  showDraft?: boolean;
 }) {
   const action = useSimAction();
   // undefined = follow the newest batch that still needs work; null = operator closed all.
@@ -296,6 +298,11 @@ export function CarrierInbox({
               ))}
             </tbody>
           </Table>
+        ) : null}
+        {showDraft && data.queued.length ? (
+          <div className="border-t border-divider p-4">
+            <BatchPayload batchId="pending" title={`Next batch file · ${data.queued.length} record${data.queued.length === 1 ? "" : "s"} · still at Nexa, not sent`} label="Illustrative 834 — not carrier-certified. The carrier receives this file when the batch runs" />
+          </div>
         ) : null}
       </Section>
 
