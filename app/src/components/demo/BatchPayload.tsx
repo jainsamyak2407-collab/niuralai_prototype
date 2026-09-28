@@ -83,7 +83,7 @@ export function BatchPayload({ batchId, label, tall = false }: { batchId: string
               <tbody>
                 {lines.map((l, i) => (
                   <tr key={i} className={`border-t border-divider ${l.segment.startsWith("INS*") ? "bg-tint-4" : ""}`}>
-                    <td className={`px-3 py-1 font-mono whitespace-nowrap text-ink-2 ${l.member && !l.segment.startsWith("INS*") ? "pl-6" : ""}`}>{l.segment}</td>
+                    <td className={`px-3 py-1 font-mono whitespace-pre text-ink-2 ${l.member && !l.segment.startsWith("INS*") ? "pl-6" : ""}`}>{l.segment}</td>
                     <td className="px-3 py-1 text-ink">{l.meaning}</td>
                   </tr>
                 ))}
