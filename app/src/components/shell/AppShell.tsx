@@ -5,6 +5,7 @@ import type { Session } from "@/server/session";
 import { MODULES } from "./nav";
 import { NavIcon } from "./icons";
 import { AccountMenu, EmmaButton, LiveRefresh, NotificationsMenu, ScenarioChip, Sidebar, TopNav } from "./ShellClient";
+import { DemoReset } from "./DemoReset";
 import { EmmaDock, EmmaProvider } from "@/components/emma/EmmaDock";
 import { loadState } from "@/server/views";
 import { SCENARIO_META } from "@/server/domain/seed";
@@ -26,6 +27,7 @@ export async function AppShell({ session, children }: { session: Session; childr
           <span className="h-6 w-px bg-line" aria-hidden />
           <TopNav modules={modules.map((m) => ({ label: m.label, href: m.href, icon: m.icon }))} />
           <div className="ml-auto flex items-center gap-2">
+            <DemoReset scenarioId={session.scenarioId} />
             <ScenarioChip scenarioId={session.scenarioId} title={SCENARIO_META[session.scenarioId].title} now={s.clock.businessNow} />
             {emma ? <EmmaButton /> : null}
             <NotificationsMenu />

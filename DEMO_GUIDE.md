@@ -26,7 +26,9 @@ not on Maya's plan, so a divorce started there has no one to remove (the details
 | Divorce | Sep 28, 2026, 9:00 AM ET | Maya, Arjun, Leela on family coverage. Divorce final Sep 15. | Arjun ends **Sep 30**. Maya and Leela stay. Total **USD 450 → 284** from the Oct 15 run. No September refund. COBRA referral sent and acknowledged. |
 | Loss of other coverage | Oct 31, 2026, 9:00 AM ET | Maya employee-only. Arjun's coverage ends **Oct 31**. | Arjun added from **Nov 1**. Total **USD 166 → 332** on the Nov 13 run, no catch-up. |
 
-Reset: demo operator → Simulators → Demo controls → "Reset this scenario".
+Reset: **Reset demo** button in the top bar (any role). Pick which scenarios to reset (one, two
+or all three), autopilot on or off, then which scenario to open and as whom (Maya, Daniel or the
+demo operator). Only the chosen scenarios go back to the start.
 
 ## Autopilot (on by default)
 Demo controls → Autopilot. When a case is clean, the system does the follow-up work itself,
