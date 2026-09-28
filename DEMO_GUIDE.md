@@ -83,7 +83,11 @@ one records the decision only.
    the Sep 30 run (USD 366) to show the payslip.
 
 Divorce (Divorce scenario): Remove from Nexa → final Sep 15, Arjun, no child order → upload the
-happy-path summary → Submit. Daniel approves and runs the batch; the COBRA referral is sent and
+happy-path summary → Submit. Daniel approves and runs the batch; the carrier accepts. On the case,
+the COBRA section shows the administrator's acknowledgment and **Send COBRA notice**: it opens the
+election notice (why, what continues, up to 36 months, elect within 60 days, cost up to 102%) and
+**Send to Arjun's email** sends it (simulated; it appears in the operator's email outbox addressed
+to Arjun only). Before that: the COBRA referral is sent and
 received. Post the Oct 15 run (USD 284) → Complete. Maya never sees Arjun's COBRA details.
 
 Loss (Loss scenario): Other health coverage → Coverage from another plan ended → Arjun,

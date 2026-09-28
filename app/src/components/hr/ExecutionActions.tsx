@@ -642,3 +642,106 @@ export function SendBatchButton({ records }: { records: number }) {
     </>
   );
 }
+
+// ---------------- COBRA election notice: preview and send to the beneficiary ----------------
+
+type NoticePreview = {
+  subject: string;
+  to: string;
+  electBy: string;
+  coverageThrough: string;
+  costs: { plan: string; monthly: string }[];
+  sections: { heading: string; paragraphs: string[] }[];
+};
+
+export function CobraNoticeButton({
+  referralId,
+  beneficiary,
+  notice,
+  sentAt,
+}: {
+  referralId: string;
+  beneficiary: string;
+  notice: NoticePreview;
+  sentAt?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const { run, pending, result, clear } = useHrCommand();
+  const send = async () => {
+    const r = await run({ type: "hr.sendCobraNotice", referralId });
+    if (r.ok) setOpen(false);
+  };
+  return (
+    <>
+      <Button size="sm" variant={sentAt ? "outline" : "primary"} onClick={() => setOpen(true)}>
+        {sentAt ? "View sent notice" : "Send COBRA notice"}
+      </Button>
+      <div className="text-left">
+        <Sheet
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            clear();
+          }}
+          title={sentAt ? "COBRA election notice (sent)" : "Send COBRA election notice"}
+          width={720}
+          footer={
+            sentAt ? (
+              <Button variant="outline" onClick={() => setOpen(false)}>
+                Close
+              </Button>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => void send()} pending={pending} pendingLabel="Sending…">
+                  Send to {beneficiary.split(" ")[0]}&apos;s email
+                </Button>
+              </>
+            )
+          }
+        >
+          <div className="flex flex-col gap-4 text-sm">
+            <dl className="grid grid-cols-[72px_minmax(0,1fr)] gap-y-1 rounded-[8px] border border-line bg-canvas px-3 py-2 text-[13px]">
+              <dt className="text-muted">To</dt>
+              <dd className="text-ink">
+                {beneficiary} &lt;{notice.to}&gt;
+              </dd>
+              <dt className="text-muted">From</dt>
+              <dd className="text-ink">Nexa Benefits &lt;benefits@nexa.example&gt; (simulated)</dd>
+              <dt className="text-muted">Subject</dt>
+              <dd className="text-ink">{notice.subject}</dd>
+            </dl>
+            <article className="flex flex-col gap-3 rounded-[10px] border border-line p-5 leading-relaxed text-ink-2">
+              {notice.sections.map((s, i) => (
+                <section key={i}>
+                  <h3 className={i === 0 ? "text-ink" : "mb-1 font-medium text-ink"}>{s.heading}</h3>
+                  {s.paragraphs.map((p, j) => (
+                    <p key={j} className="mt-1">
+                      {p}
+                    </p>
+                  ))}
+                </section>
+              ))}
+              <section>
+                <h3 className="mb-1 font-medium text-ink">Monthly cost if you elect (illustrative)</h3>
+                <ul className="flex flex-col gap-0.5">
+                  {notice.costs.map((c) => (
+                    <li key={c.plan} className="flex justify-between gap-4 tabular">
+                      <span>{c.plan}</span>
+                      <span className="text-ink">{c.monthly}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+              <p className="text-xs text-muted">Synthetic demo — not a legal notice. Modeled on the structure of the U.S. Department of Labor model election notice.</p>
+            </article>
+            <p className="text-xs text-muted">Sent to {beneficiary} only. {`The employee does not see this notice or ${beneficiary.split(" ")[0]}'s contact details.`}</p>
+            <CommandError result={result} onRetry={() => void send()} />
+          </div>
+        </Sheet>
+      </div>
+    </>
+  );
+}

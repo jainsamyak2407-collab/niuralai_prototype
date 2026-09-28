@@ -566,6 +566,7 @@ export interface CobraReferral {
   noticeRef?: string;
   noticeStatus?: string;
   infoRequested?: string;
+  noticeSent?: { at: ISOTime; by: string; to: string; subject: string }; // election notice emailed through the portal (simulated)
   history: { at: ISOTime; actor: string; state: CobraState; note: string }[];
   // restricted fields: never sent to the employee view
   private: { mailingAddress: string; email: string };
@@ -577,7 +578,7 @@ export interface Notification {
   key: string; // dedupe key
   recipientUserId: string;
   recipientEmail: string;
-  recipientRole: Role;
+  recipientRole: Role | "beneficiary";
   subject: string;
   preview: string;
   caseId: string | null;

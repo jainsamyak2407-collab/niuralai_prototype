@@ -85,4 +85,5 @@ export const ROLE_LABEL: Record<string, string> = {
   carrier_operator: "Carrier operator",
   cobra_admin: "COBRA administrator",
   demo_operator: "Demo operator",
+  beneficiary: "COBRA beneficiary (external)",
 };

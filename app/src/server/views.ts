@@ -1,5 +1,6 @@
 import { caseAiMatch, readyAt100 } from "@/server/domain/autopilot";
 import { aiReview } from "@/server/ai/review";
+import { cobraNotice } from "@/server/domain/cobra-notice";
 import type {
   AuditEvent,
   Benefit,
@@ -442,7 +443,7 @@ export async function hrCaseView(user: DemoUser, scenario: ScenarioId, caseId: s
     txns: txns.map((t) => ({ ...t, summary: decodeOrder(t.order), batch: s.batches.find((b) => b.id === t.batchId) ?? null })),
     observations: s.observations.filter((o) => o.caseId === c.id),
     instructions: s.instructions.filter((i) => i.caseId === c.id).map((i) => instructionView(s, i)),
-    cobra: cobra ? { ...cobra, private: undefined, contactOnFile: !!cobra.private.mailingAddress } : null,
+    cobra: cobra ? { ...cobra, private: undefined, contactOnFile: !!cobra.private.mailingAddress, notice: ["received", "notice_tracked"].includes(cobra.state) ? cobraNotice(s, cobra) : null } : null,
     exec: { linesOk: exec.linesOk, payrollDone: exec.payrollDone, cobraOk: exec.cobraOk, openBlocking: exec.openBlocking.length, complete: !!c.completedAt },
     milestones: milestones(s, c),
     timeline: s.audit.filter((a) => a.caseId === c.id),

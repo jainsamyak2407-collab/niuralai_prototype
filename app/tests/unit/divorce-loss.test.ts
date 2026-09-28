@@ -196,3 +196,35 @@ describe("permissions", () => {
     expect(r.status).toBe(404);
   });
 });
+
+describe("COBRA election notice from the portal", () => {
+  it("HR sends the notice to the beneficiary only after the administrator acknowledges", async () => {
+    const { freshStore: fresh, ok: okc, run: runc, state: st, caseById: byId, attachEvidence: attach } = await import("./helpers");
+    fresh(true);
+    const d = await okc("u_maya", "divorce", { type: "case.createDraft", eventCode: "divorce" });
+    let c = await byId("divorce", d.entityId!);
+    await okc("u_maya", "divorce", { type: "case.updateDraft", caseId: c.id, expectedVersion: c.version, facts: { direction: "remove_from_nexa", divorceFinal: true, eventDate: "2026-09-15", formerSpousePersonId: "p_arjun", childCoverageOrder: "none", formerSpouseContactKnown: true } });
+    await attach("divorce", c.id);
+    c = await byId("divorce", c.id);
+    await okc("u_maya", "divorce", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    const s0 = await st("divorce");
+    const r0 = s0.cobra.find((x) => x.caseId === c.id)!;
+    expect((await runc("u_daniel", "divorce", { type: "hr.sendCobraNotice", referralId: r0.id })).status).toBe(422);
+    const store = (await import("@/server/store/store")).getStore();
+    const s = await store.load("divorce");
+    const r = s.cobra.find((x) => x.id === r0.id)!;
+    r.state = "received";
+    r.receivedAt = s.clock.businessNow;
+    s.rev += 1;
+    await store.commit(s);
+    const out = await okc("u_daniel", "divorce", { type: "hr.sendCobraNotice", referralId: r.id });
+    expect(out.message).toContain("Arjun Shah");
+    const after = await st("divorce");
+    const mail = after.outbox.find((n) => n.key === `cobra_notice:${r.id}`)!;
+    expect(mail.recipientEmail).toBe("arjun.private@example.invalid");
+    expect(mail.preview).toContain("Dear Arjun Shah");
+    expect(mail.recipientRole).toBe("beneficiary");
+    expect(after.outbox.some((n) => n.recipientUserId === "u_maya" && n.subject.includes("COBRA continuation coverage rights"))).toBe(false);
+    expect(after.cobra.find((x) => x.id === r.id)!.state).toBe("notice_tracked");
+  });
+});

@@ -23,6 +23,7 @@ import {
   PayrollCorrectionButton,
   ResolveTaskButton,
   SendBatchButton,
+  CobraNoticeButton,
 } from "../ExecutionActions";
 import { Edi834Button } from "../Edi834Button";
 import {
@@ -492,6 +493,26 @@ export function CobraSection({ v }: { v: HrCaseView }) {
             contactOnFile={r.contactOnFile}
             disabledReason={disabledReason}
           />
+        </div>
+      ) : null}
+      {r.notice ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-divider pt-4">
+          <div className="text-[13px]">
+            {r.noticeSent ? (
+              <>
+                <p className="text-ink">
+                  Election notice sent to {r.beneficiaryName} ({r.noticeSent.to}) on <DateText time={r.noticeSent.at} />.
+                </p>
+                <p className="text-muted">Election is due by <DateText date={r.notice.electBy} />. The administrator tracks the election and premiums.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-ink">The administrator acknowledged the referral{r.receivedAt ? <> on <DateText time={r.receivedAt} /></> : null}. The election notice is ready to send.</p>
+                <p className="text-muted">It goes to {r.beneficiaryName} at {r.notice.to}. The employee never sees it.</p>
+              </>
+            )}
+          </div>
+          <CobraNoticeButton referralId={r.id} beneficiary={r.beneficiaryName} notice={r.notice} sentAt={r.noticeSent?.at} />
         </div>
       ) : null}
       {r.history.length ? (

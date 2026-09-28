@@ -149,6 +149,7 @@ export const command = z.discriminatedUnion("type", [
   z.object({ type: z.literal("hr.approve"), ...base, ...caseRef, revisionNo: z.number().int().positive() }),
   z.object({ type: z.literal("hr.bulkApprove"), ...base, caseIds: z.array(z.string()).min(1).max(50) }),
   z.object({ type: z.literal("hr.sendBatch"), ...base }),
+  z.object({ type: z.literal("hr.sendCobraNotice"), ...base, referralId: z.string() }),
   // Simulated carrier, one click: receipt, file validation and member results for one file
   // or API request (batchId), or for everything pending (no batchId).
   z.object({ type: z.literal("ops.carrierAccept"), ...base, batchId: z.string().optional() }),
