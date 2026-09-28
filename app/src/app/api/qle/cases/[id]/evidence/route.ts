@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import type { EvidenceFile, QleCase } from "@/lib/contracts/domain";
 import { fmtDateLong } from "@/lib/dates";
@@ -111,7 +112,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
         mimeType: type,
         sizeBytes: bytes.byteLength,
         sha256,
-        storagePath: `${scenarioId}/${c.id}/${fileId}`,
+        // Unique per upload: case and file ids restart after a scenario reset, and the
+        // private bucket never overwrites an existing object.
+        storagePath: `${scenarioId}/${c.id}/${fileId}-${randomUUID()}`,
         uploadedBy: user.id,
         uploadedAt: now(ctx),
         status: "reading",
