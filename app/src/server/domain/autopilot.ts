@@ -5,12 +5,10 @@ import type { Ctx } from "./ctx";
 import { blockingOpen } from "./evaluate";
 import { execute } from "./workflow";
 
-// Autopilot (demo setting, on by default): the simulated outside systems respond at once.
-// HR still approves every case and sends the batch file to the carrier. After that, the
-// simulated carrier, payroll system and COBRA administrator answer through the SAME
-// commands a simulator click would issue, so every step is validated and audited.
-// Anything flagged (a carrier mismatch, a large payroll adjustment, an unknown delivery)
-// stops and waits for a person.
+// Autopilot (demo setting, on by default): after the carrier confirms coverage, the pay
+// update is authorized and accepted by the simulated payroll system, and the COBRA referral
+// is sent and acknowledged. HR approval, running the batch and the carrier's response stay
+// manual. It issues the SAME commands a click would, so every step is validated and audited.
 
 export const RULES_ACTOR: DemoUser = {
   id: "system_rules",
@@ -56,21 +54,11 @@ export function caseAiMatch(s: ScenarioState, c: QleCase): number | null {
 export function runAutopilot(ctx: Ctx) {
   const s = ctx.s;
   if (s.autopilot === false) return;
-  const carrier = userById("u_carrier")!;
   const ops = userById("u_ops")!;
   const cobra = userById("u_cobra")!;
   for (let round = 0; round < 12; round++) {
     let progressed = false;
-    // Approval and sending the batch file stay with HR. The simulated carrier: transport receipt, file acceptance, member results, coverage.
-    for (const b of s.batches) {
-      if (b.transport === "pending") progressed = run(ctx, carrier, { type: "ops.batchTransport", batchId: b.id, outcome: "received" }) || progressed;
-      if (b.transport === "received" && b.fileValidation === "pending") progressed = run(ctx, carrier, { type: "ops.batchValidation", batchId: b.id, outcome: "accepted" }) || progressed;
-      const open = b.txnIds.map((id) => s.txns.find((t) => t.id === id)!).some((t) => !t.superseded && (t.memberResult === "pending" || (t.memberResult === "accepted" && !s.observations.some((o) => o.txnId === t.id))));
-      if (b.fileValidation === "accepted" && open) progressed = run(ctx, carrier, { type: "ops.publishAccepted", batchId: b.id }) || progressed;
-    }
-    for (const t of s.txns) {
-      if (t.route === "api" && !t.superseded && t.delivery === "acknowledged" && t.memberResult === "pending") progressed = run(ctx, carrier, { type: "ops.publishAccepted", batchId: t.id }) || progressed;
-    }
+    // Approval, running the batch and the carrier's response are clicks in the demo.
     // Payroll: created only after the carrier confirms coverage. HR already reviewed this pay
     // change (new deduction and catch-up) when approving the case, so it is authorized here.
     // A retroactive change flagged "Payroll review required" still waits for HR. small adjustments authorized by policy; the payroll system applies the instruction.

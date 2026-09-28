@@ -130,6 +130,10 @@ export function CarrierInbox({
   showDraft?: boolean;
 }) {
   const action = useSimAction();
+  const openRecord = (t: CarrierData["batches"][number]["txns"][number]) => !t.superseded && t.delivery !== "record_rejected" && (t.memberResult === "pending" || (t.memberResult === "accepted" && !t.observations.length));
+  const pendingAtCarrier =
+    data.batches.filter((b) => (b.transport === "pending" || b.transport === "received") && b.fileValidation !== "rejected" && b.txns.some(openRecord)).length +
+    data.apiRequests.filter((t) => !t.superseded && t.delivery === "acknowledged" && t.memberResult === "pending").length;
   // undefined = follow the newest batch that still needs work; null = operator closed all.
   const [picked, setOpen] = useState<string | null | undefined>(undefined);
   const open =
@@ -210,6 +214,19 @@ export function CarrierInbox({
           )
         }
       />
+
+      {/* Carrier: one click for everything that has arrived */}
+      {pendingAtCarrier ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-primary/30 bg-tint-4 px-5 py-4">
+          <div>
+            <p className="text-sm text-ink">Waiting for the carrier: {pendingAtCarrier} item{pendingAtCarrier === 1 ? "" : "s"}</p>
+            <p className="text-[13px] text-muted">834 files HR has sent and dental or vision API requests. Accepting confirms coverage; reconciliation then checks each record against the approved change.</p>
+          </div>
+          <Button onClick={() => void action.run("ca:all", { type: "ops.carrierAccept" })} pending={action.isBusy("ca:all")} pendingLabel="Processing…">
+            Accept everything pending
+          </Button>
+        </div>
+      ) : null}
 
       {/* Queue */}
       <Section
@@ -759,8 +776,19 @@ function BatchDetail({
           ? "The carrier did not receive this file."
           : null;
 
+  const canAccept = (b.transport === "pending" || b.transport === "received") && b.fileValidation !== "rejected" && publishable;
   return (
     <div className="flex flex-col gap-4">
+      {canAccept ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-primary/30 bg-tint-4 px-4 py-3">
+          <p className="text-[13px] text-ink">
+            The carrier has this file. One click records the transport receipt, accepts the file and publishes the member results. Armed presets still apply.
+          </p>
+          <Button size="sm" onClick={() => void action.run(`ca:${b.id}`, { type: "ops.carrierAccept", batchId: b.id })} pending={action.isBusy(`ca:${b.id}`)} pendingLabel="Processing…">
+            Receive and accept file
+          </Button>
+        </div>
+      ) : null}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="rounded-[10px] border border-line bg-surface px-4">
           <ol aria-label={`Stages for ${b.id}`}>

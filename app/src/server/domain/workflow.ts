@@ -1,5 +1,5 @@
 import type { Command } from "@/lib/contracts/commands";
-import type { CommandResult, DemoUser, QleCase, Role, ScenarioState } from "@/lib/contracts/domain";
+import type { CarrierBatch, CommandResult, DemoUser, QleCase, Role, ScenarioState } from "@/lib/contracts/domain";
 import { addDays, firstOfNextMonth, fmtDateLong, localDate, zonedToUtc } from "@/lib/dates";
 import { fmtMoney } from "@/lib/money";
 import { EVENT_LABEL } from "@/server/config/rules";
@@ -45,6 +45,7 @@ const OPS_ROLES: Record<string, Role[]> = {
   "ops.bounce": ["demo_operator"],
   "ops.rateChange": ["demo_operator"],
   "ops.autopilot": ["demo_operator"],
+  "ops.carrierAccept": ["demo_operator", "carrier_operator"],
   "ops.reset": ["demo_operator"],
 };
 
@@ -510,7 +511,7 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
     case "hr.sendBatch": {
       const b = runBatch(ctx);
       audit(ctx, { caseId: null, type: "hr.batch_sent", summary: `${ctx.actor.name} ran the EDI 834 batch now (${b?.id}, ${b?.recordCount} record(s)) instead of waiting for the 10:00 PM ET run.` });
-      return { ok: true, entityId: b?.id, message: `Batch ${b?.id} sent: EDI 834 file with ${b?.recordCount} record${b?.recordCount === 1 ? "" : "s"}. Coverage is confirmed when the carrier's record matches.` };
+      return { ok: true, entityId: b?.id, message: `Batch ${b?.id} sent: EDI 834 file with ${b?.recordCount} record${b?.recordCount === 1 ? "" : "s"}. It is now in the carrier's inbox; coverage is confirmed when the carrier accepts it and its record matches.` };
     }
     case "hr.decide": {
       const c = ownCase(ctx, cmd.caseId);
@@ -902,6 +903,30 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       }
       audit(ctx, { caseId: n.caseId, type: "notification.bounced", summary: `Simulated bounce: ${n.subject}` });
       return { ok: true, message: "Bounce simulated. An alternate-contact task was created." };
+    }
+    case "ops.carrierAccept": {
+      let n = 0;
+      let files = 0;
+      let api = 0;
+      const sub = (c: Record<string, unknown>) => {
+        try {
+          return execute({ ...ctx, nested: true }, { ...c, idempotencyKey: `${cmd.idempotencyKey}:${n++}` } as Command).ok;
+        } catch {
+          return false;
+        }
+      };
+      const open = (b: CarrierBatch) => b.txnIds.map((id) => s.txns.find((t) => t.id === id)!).some((t) => !t.superseded && (t.memberResult === "pending" || (t.memberResult === "accepted" && !s.observations.some((o) => o.txnId === t.id))));
+      const batches = s.batches.filter((b) => (!cmd.batchId || b.id === cmd.batchId) && (b.transport === "pending" || b.fileValidation === "pending" || open(b)));
+      for (const b of batches) {
+        if (b.transport === "pending") sub({ type: "ops.batchTransport", batchId: b.id, outcome: "received" });
+        if (b.transport === "received" && b.fileValidation === "pending") sub({ type: "ops.batchValidation", batchId: b.id, outcome: "accepted" });
+        if (b.fileValidation === "accepted" && open(b) && sub({ type: "ops.publishAccepted", batchId: b.id })) files++;
+      }
+      const apiTxns = s.txns.filter((t) => t.route === "api" && !t.superseded && (!cmd.batchId || t.id === cmd.batchId) && t.delivery === "acknowledged" && t.memberResult === "pending");
+      for (const t of apiTxns) if (sub({ type: "ops.publishAccepted", batchId: t.id })) api++;
+      if (!files && !api) throw new DomainError(422, "nothing_pending", "Nothing is waiting for the carrier. HR runs the batch first; a file with unknown delivery needs HR's status inquiry.");
+      audit(ctx, { caseId: null, type: "carrier.accepted", summary: `Simulated carrier received and processed ${files} file(s) and ${api} API request(s).` });
+      return { ok: true, message: `Carrier processed ${files ? `${files} file${files === 1 ? "" : "s"}` : ""}${files && api ? " and " : ""}${api ? `${api} API request${api === 1 ? "" : "s"}` : ""}. Reconciliation compares each record with the approved change.` };
     }
     case "ops.autopilot": {
       s.autopilot = cmd.on;

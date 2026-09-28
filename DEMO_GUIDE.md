@@ -42,8 +42,9 @@ demo operator). Only the chosen scenarios go back to the start.
    For the demo, Daniel clicks **Run batch now** there (or on the case, or in the queue). **View 834 file** (case → Delivery, or
    Integrations) opens the exact file the carrier received, line by line or raw, with a download.
    The carrier side (operator → Carrier inbox) shows the same file.
-4. With autopilot on, the simulated carrier receives and accepts the file at once. Once the carrier
-   confirms, the pay update is authorized automatically (HR already approved it with the case) and
+4. The file now sits in the carrier's inbox. Switch to the **demo operator** → Simulators →
+   Carrier inbox → **Receive and accept file** (or **Accept everything pending**, which also
+   answers the dental and vision API requests). Once the carrier confirms, the pay update is authorized automatically (HR already approved it with the case) and
    payroll accepts it. Every step shows done and the case is **Complete**. Nothing is approved
    without HR. When the paycheck later posts, it is checked again; a different amount reopens the
    case with a payroll task.
@@ -74,9 +75,11 @@ one records the decision only.
    happy-path hospital record and upload it: **AI match 100%**. Medical, Aetna Standard,
    USD 150 → 250. Review → Submit.
 3. **Daniel** (account menu → Switch role): Life events → the case → read the AI review →
-   **Approve this version** (or Approve all ready in the queue) → **Run batch now** → **View 834
-   file** to show the file the carrier received.
-4. Maya's tracker shows every step done and **Complete**. Optional: operator → Payroll → post
+   **Approve this version** (or Approve all ready in the queue) → Integrations → Next batch shows
+   the generated 834 file → **Run batch now**.
+4. **Demo operator** (Switch role): Simulators → Carrier inbox → the file is there → **Receive
+   and accept file**.
+5. Maya's tracker shows every step done and **Complete**. Optional: operator → Payroll → post
    the Sep 30 run (USD 366) to show the payslip.
 
 Divorce (Divorce scenario): Remove from Nexa → final Sep 15, Arjun, no child order → upload the

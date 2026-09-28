@@ -105,14 +105,13 @@ export function DemoControls({
             Autopilot
           </span>
         }
-        description="The simulated outside systems answer at once. HR still approves every case; the batch file runs nightly at 10:00 PM ET or when HR clicks Run batch now."
+        description="After the carrier confirms coverage, payroll and COBRA follow on their own. HR approval, running the batch and the carrier's response stay as clicks."
         actions={<StatusPill tone={autopilot ? "green" : "gray"}>{autopilot ? "On" : "Off"}</StatusPill>}
       >
         <div className="grid grid-cols-1 gap-4 text-[13px] text-ink-2 md:grid-cols-2">
           <div>
             <p className="mb-1 text-xs text-muted">Runs on its own (simulated)</p>
             <ul className="list-disc space-y-0.5 pl-4">
-              <li>Carrier receipt, file acceptance and member results once the batch file is sent</li>
               <li>Pay updates once the carrier confirms (HR approved them with the case)</li>
               <li>COBRA referral with an address on file, and its receipt</li>
             </ul>
@@ -122,6 +121,7 @@ export function DemoControls({
             <ul className="list-disc space-y-0.5 pl-4">
               <li>HR approval of every case, one by one or all 100% cases at once</li>
               <li>Running the batch now (otherwise it runs at 10:00 PM ET)</li>
+              <li>The carrier receiving and accepting the file (Carrier inbox)</li>
               <li>A carrier mismatch, rejection or unknown delivery</li>
               <li>Retroactive payroll changes flagged for review</li>
               <li>Posting a pay run; a case completes once its paycheck posts</li>

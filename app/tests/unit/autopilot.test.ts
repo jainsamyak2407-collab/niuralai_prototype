@@ -10,6 +10,9 @@ async function approveAndSend(scenario: ScenarioId, caseId: string) {
   await ok("u_daniel", scenario, { type: "hr.approve", caseId, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo });
   const s = await state(scenario);
   if (s.txns.some((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded)) await ok("u_daniel", scenario, { type: "hr.sendBatch" });
+  const mid = await caseById(scenario, caseId);
+  expect(mid.lines.some((l) => l.coverageState === "confirmed_current" || l.coverageState === "confirmed_future" || l.coverageState === "end_confirmed")).toBe(false); // carrier has not answered yet
+  await ok("u_carrier", scenario, { type: "ops.carrierAccept" });
 }
 
 describe("autopilot", () => {
@@ -97,6 +100,7 @@ describe("autopilot", () => {
     expect(ava.coverageState).toBe("mismatch");
     await ok("u_daniel", "birth", { type: "hr.sendCorrection", caseId: c.id, lineId: ava.id });
     await ok("u_daniel", "birth", { type: "hr.sendBatch" });
+    await ok("u_carrier", "birth", { type: "ops.carrierAccept" });
     c = await caseById("birth", c.id);
     expect(c.lines.every((l) => l.coverageState === "confirmed_current")).toBe(true);
   });
