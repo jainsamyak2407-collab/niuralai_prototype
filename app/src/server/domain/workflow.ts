@@ -664,9 +664,13 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       b.transport = cmd.outcome;
       for (const tid of b.txnIds) {
         const t = s.txns.find((x) => x.id === tid)!;
-        if (t.delivery === "sent") t.delivery = "acknowledged";
+        // Only a real transport receipt acknowledges delivery; a timeout makes it unknown.
+        if (t.delivery === "sent") t.delivery = cmd.outcome === "received" ? "acknowledged" : "receipt_unknown";
       }
-      audit(ctx, { caseId: s.txns.find((t) => t.id === b.txnIds[0])?.caseId ?? null, type: "carrier.transport_ack", summary: `Transport receipt for ${b.id}. A transport receipt is not a coverage result.` });
+      if (cmd.outcome === "unknown") {
+        addTask(ctx, { caseId: s.txns.find((t) => t.id === b.txnIds[0])!.caseId, kind: "delivery_investigation", title: `Transport outcome unknown for ${b.id}`, reason: "The carrier transfer timed out. We do not know whether the file arrived.", nextAction: "Run a status inquiry with the carrier before any resend or route switch.", ownerId: HR_ID, backupOwnerId: "u_partner_ops", dueAt: addBusinessDays(now(ctx), 1), blocking: true, internalOnly: true });
+      }
+      audit(ctx, { caseId: s.txns.find((t) => t.id === b.txnIds[0])?.caseId ?? null, type: "carrier.transport_ack", summary: cmd.outcome === "received" ? `Transport receipt for ${b.id}. A transport receipt is not a coverage result.` : `Transport for ${b.id} timed out; outcome unknown. Status inquiry required before any resend.` });
       return { ok: true, message: "Transport receipt recorded. Coverage is not confirmed." };
     }
     case "ops.batchValidation": {

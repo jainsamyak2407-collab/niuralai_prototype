@@ -18,7 +18,7 @@ export async function AppShell({ session, children }: { session: Session; childr
   const emma = session.user.role === "employee" || session.user.role === "hr_admin";
   return (
     <EmmaProvider enabled={emma}>
-      <div className="flex min-h-dvh flex-col bg-backdrop">
+      <div className="flex h-dvh flex-col overflow-hidden bg-backdrop">
         <header className="flex h-[60px] shrink-0 items-center gap-3 bg-surface px-4">
           <Link href="/" className="flex items-center gap-2 pr-3" aria-label="Demo entry">
             <Image src="/niural-logo.svg" alt="Niural AI" width={89} height={24} priority />
