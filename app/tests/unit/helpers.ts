@@ -5,8 +5,9 @@ import { runCommand } from "@/server/runner";
 import { getStore, MemoryStore, setStoreForTests } from "@/server/store/store";
 
 let n = 0;
-export function freshStore() {
-  const s = new MemoryStore();
+/** Manual step-by-step tests turn autopilot off; autopilot tests pass true. */
+export function freshStore(autopilot = false) {
+  const s = new MemoryStore(autopilot);
   setStoreForTests(s);
   return s;
 }

@@ -27,6 +27,7 @@ export const OWNERS: Record<string, { name: string; role: string }> = {
   u_carrier: { name: "Carrier operator", role: "Carrier (simulated)" },
   u_payroll: { name: "Payroll simulator", role: "Host payroll (simulated)" },
   system: { name: "System", role: "Automated" },
+  system_rules: { name: "Rules engine (straight-through)", role: "Automated policy" },
   u_bg_employee: { name: "Employee (background case)", role: "Employee" },
   u_orbit_hr: { name: "Orbit Labs HR", role: "Other employer" },
 };

@@ -22,6 +22,7 @@ import {
   runBatch,
 } from "./execution";
 import { advanceClock, runDueJobs } from "./jobs";
+import { RULES_ACTOR, runAutopilot } from "./autopilot";
 
 const ROLE_FOR: Record<string, Role[]> = {
   case: ["employee"],
@@ -42,6 +43,7 @@ const OPS_ROLES: Record<string, Role[]> = {
   "ops.preset": ["demo_operator"],
   "ops.bounce": ["demo_operator"],
   "ops.rateChange": ["demo_operator"],
+  "ops.autopilot": ["demo_operator"],
   "ops.reset": ["demo_operator"],
 };
 
@@ -107,6 +109,12 @@ function invalidateApprovalIfMaterial(ctx: Ctx, c: QleCase, before: string) {
 }
 
 export function execute(ctx: Ctx, cmd: Command): CommandResult {
+  const result = executeOne(ctx, cmd);
+  if (!ctx.nested) runAutopilot(ctx);
+  return result;
+}
+
+function executeOne(ctx: Ctx, cmd: Command): CommandResult {
   authorize(ctx.actor, cmd);
   const s = ctx.s;
   switch (cmd.type) {
@@ -447,9 +455,11 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       touch(ctx, c);
       closeTasks(ctx, (t) => t.caseId === c.id && ["hr_review", "specialist_review"].includes(t.kind), "Approved.");
       approveExecution(ctx, c, approval.id);
-      audit(ctx, { caseId: c.id, type: "case.approved", summary: `Approved revision ${latest.revisionNo} (hash ${latest.hash}). Rules: ${ev.ruleSnapshot.map((r) => `${r.id}@${r.version}`).join(", ")}. Approval is not carrier acceptance or coverage.`, employeeSummary: "HR approved your request. Next, the change goes to the insurance provider." });
+      const auto = ctx.actor.id === RULES_ACTOR.id;
+      audit(ctx, { caseId: c.id, type: "case.approved", summary: `${auto ? "Approved automatically under Nexa's straight-through policy (every check passed, AI match 100%). " : ""}Approved revision ${latest.revisionNo} (hash ${latest.hash}). Rules: ${ev.ruleSnapshot.map((r) => `${r.id}@${r.version}`).join(", ")}. Approval is not carrier acceptance or coverage.`, employeeSummary: auto ? "Approved automatically: every check passed. Next, the change goes to the insurance provider." : "HR approved your request. Next, the change goes to the insurance provider." });
       metric(ctx, "approved", c.id);
-      notify(ctx, { key: `approved:${c.id}:${approval.id}`, userId: EMPLOYEE_ID, subject: `${c.caseNumber}: approved by HR`, preview: "HR approved your request. We'll send it to the insurance provider and confirm the result.", caseId: c.id, eventType: "decision" });
+      notify(ctx, { key: `approved:${c.id}:${approval.id}`, userId: EMPLOYEE_ID, subject: `${c.caseNumber}: approved`, preview: auto ? "Every check passed, so your request was approved automatically. We'll confirm the result with the insurance provider." : "HR approved your request. We'll send it to the insurance provider and confirm the result.", caseId: c.id, eventType: "decision" });
+      if (auto) notify(ctx, { key: `autoapproved:${c.id}`, userId: HR_ID, subject: `${c.caseNumber}: approved automatically`, preview: "Straight-through: every check passed and the document matched 100%. Open the case to review or correct.", caseId: c.id, eventType: "decision" });
       return ok(c, "Approved. Carrier changes queued; coverage is not confirmed until the carrier record matches.");
     }
     case "hr.decide": {
@@ -840,6 +850,11 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       }
       audit(ctx, { caseId: n.caseId, type: "notification.bounced", summary: `Simulated bounce: ${n.subject}` });
       return { ok: true, message: "Bounce simulated. An alternate-contact task was created." };
+    }
+    case "ops.autopilot": {
+      s.autopilot = cmd.on;
+      audit(ctx, { caseId: null, type: "demo.autopilot", summary: cmd.on ? "Autopilot on: clean cases are approved by policy; simulated carrier, payroll and COBRA respond at once." : "Autopilot off: every step waits for a person or a simulator click." });
+      return { ok: true, message: cmd.on ? "Autopilot on. Clean cases run straight through; problems still stop for a person." : "Autopilot off. Every step is manual." };
     }
     case "ops.rateChange": {
       // A published rule or rate change flags affected cases for review. It never

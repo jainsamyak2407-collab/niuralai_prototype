@@ -134,7 +134,13 @@ export function milestones(s: ScenarioState, c: QleCase): Milestone[] {
     state: c.completedAt ? "done" : "upcoming",
     at: c.completedAt ?? null,
     owner: "—",
-    explanation: c.completedAt ? (cobra ? "Complete. The continuation handoff was acknowledged; the administrator handles it separately." : "Coverage and pay match the approved change.") : "When coverage and pay both match the approved change.",
+    explanation: c.completedAt
+      ? cobra
+        ? "Complete. The continuation handoff was acknowledged; the administrator handles it separately."
+        : "Coverage and pay match the approved change."
+      : exec.linesOk && nextRun
+        ? `Completes when the ${fmtDateLong(nextRun.payday, true)} paycheck posts with the new deduction.`
+        : "When coverage and pay both match the approved change.",
     action: null,
   });
   return m;
@@ -151,7 +157,8 @@ export function statusLabel(s: ScenarioState, c: QleCase): { label: string; tone
   if (e.issues.length) return { label: "Provider issue", tone: "red" };
   if (e.payroll.some((p) => p.state === "mismatch")) return { label: "Payroll issue", tone: "red" };
   if (!e.linesOk) return { label: "Waiting for carrier", tone: "blue" };
-  if (!e.payrollDone) return { label: "Coverage confirmed; pay scheduled", tone: "amber" };
+  // Coverage is settled with the carrier; only the paycheck is still ahead.
+  if (!e.payrollDone) return { label: c.eventCode === "divorce" ? "Removal confirmed · pay update scheduled" : "Enrolled · pay update scheduled", tone: "green" };
   if (!e.cobraOk) return { label: "Waiting for COBRA receipt", tone: "amber" };
   return { label: "Finishing", tone: "blue" };
 }
@@ -589,6 +596,7 @@ export async function integrationsView(user: DemoUser, scenario: ScenarioId) {
     role: user.role,
     now: s.clock.businessNow,
     preset: ops ? s.preset : null,
+    autopilot: s.autopilot !== false,
     store: storeMode(),
     scenario: { id: scenario, ...SCENARIO_META[scenario] },
     nextBatchAt: nextBatchAt(s),

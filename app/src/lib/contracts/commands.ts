@@ -206,6 +206,7 @@ export const command = z.discriminatedUnion("type", [
     preset: z.enum(["none", "carrier_wrong_start_date", "carrier_reject_one_record", "transport_unknown", "payroll_different_amount", "dental_failure"]),
   }),
   z.object({ type: z.literal("ops.bounce"), ...base, notificationId: z.string() }),
+  z.object({ type: z.literal("ops.autopilot"), ...base, on: z.boolean() }),
   z.object({ type: z.literal("ops.rateChange"), ...base, note: z.string().trim().min(5).max(300) }),
   z.object({ type: z.literal("ops.reset"), ...base, confirmScenario: z.enum(["birth", "divorce", "loss"]) }),
 ]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { History, Mail, RotateCcw } from "lucide-react";
+import { History, Mail, RotateCcw, Zap } from "lucide-react";
 import type { FailurePreset, ScenarioId } from "@/lib/contracts/domain";
 import { fmtDateTime } from "@/lib/dates";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export function DemoControls({
   now,
   nextBatchAt,
   preset,
+  autopilot,
   store,
   scenario,
   outbox,
@@ -33,6 +34,7 @@ export function DemoControls({
   now: string;
   nextBatchAt: string;
   preset: FailurePreset;
+  autopilot: boolean;
   store: { mode: string; durable: boolean };
   scenario: { id: ScenarioId; title: string };
   outbox: OutboxRow[];
@@ -95,6 +97,44 @@ export function DemoControls({
   return (
     <div className="flex flex-col gap-5">
       <ActionError action={action} scope={(id) => id !== "reset"} />
+      {/* Autopilot */}
+      <Section
+        title={
+          <span className="flex items-center gap-2">
+            <Zap className="size-4 text-muted" aria-hidden />
+            Autopilot
+          </span>
+        }
+        description="Straight-through processing for clean cases. Uses the same checks and audit trail as the manual steps."
+        actions={<StatusPill tone={autopilot ? "green" : "gray"}>{autopilot ? "On" : "Off"}</StatusPill>}
+      >
+        <div className="grid grid-cols-1 gap-4 text-[13px] text-ink-2 md:grid-cols-2">
+          <div>
+            <p className="mb-1 text-xs text-muted">Runs on its own</p>
+            <ul className="list-disc space-y-0.5 pl-4">
+              <li>Approval when every check passed and every document is an AI match of 100%</li>
+              <li>Carrier send and a simulated carrier confirmation</li>
+              <li>Payroll catch-ups up to USD 500, applied to the next run</li>
+              <li>COBRA referral with an address on file, and its receipt</li>
+            </ul>
+          </div>
+          <div>
+            <p className="mb-1 text-xs text-muted">Still stops for a person</p>
+            <ul className="list-disc space-y-0.5 pl-4">
+              <li>A document under 100%, or any check that needs review</li>
+              <li>A carrier mismatch, rejection or unknown delivery</li>
+              <li>Larger or retroactive payroll adjustments</li>
+              <li>Posting a pay run; a case completes once its paycheck posts</li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-4">
+          <Button size="sm" variant={autopilot ? "outline" : "primary"} onClick={() => void action.run("autopilot", { type: "ops.autopilot", on: !autopilot })} pending={action.isBusy("autopilot")} pendingLabel="Saving…">
+            {autopilot ? "Turn off autopilot" : "Turn on autopilot"}
+          </Button>
+        </div>
+      </Section>
+
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         {/* Clock */}
         <Section

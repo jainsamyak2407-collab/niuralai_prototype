@@ -113,7 +113,8 @@ export default async function OptionsPage({ params }: { params: Promise<{ id: st
         {header}
         {leaving.length === 0 ? (
           <Banner tone="warning" title="No one to remove from Nexa's plan">
-            The person you named is not covered under Nexa. Nothing on your plan ends and your deduction does not change. HR will confirm with you.
+            {f.formerSpousePersonId ? nameOf(f.formerSpousePersonId) : "Your former spouse"} is not on your Nexa coverage today, so nothing ends and your deduction stays the same. Go back to the details step to
+            change your answer.
           </Banner>
         ) : null}
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2">

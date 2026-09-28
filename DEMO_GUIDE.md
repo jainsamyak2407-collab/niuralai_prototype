@@ -17,54 +17,59 @@ decides role and employer; the browser cannot choose a role.
 | Demo operator | ops@demo.example | All simulators, clock, presets, reset | /demo/integrations |
 
 ## Scenarios (isolated; switch from the entry page or the scenario chip in the top bar)
-| Scenario | Starts | Household | Expected result |
+Run each life event in its own scenario. The household differs: in the Birth scenario Arjun is
+not on Maya's plan, so a divorce started there has no one to remove (the details step says so).
+
+| Scenario | Starts | Household | Expected result (autopilot on) |
 |---|---|---|---|
-| Birth | Sep 27, 2026, 9:00 AM ET | Maya employee-only (medical, dental, vision). Arjun not enrolled. Ava born Sep 1. | Ava on medical from **Sep 1**. Medical USD 150 → 250. Sep collected 300 vs owed 500 → catch-up **USD 200**. Oct 15 paycheck: 250 + 200 + 12 + 4 = **USD 466**. Next run **USD 266**. |
-| Divorce | Sep 28, 2026, 9:00 AM ET | Maya, Arjun, Leela on family coverage. Divorce final Sep 15. | Arjun ends **Sep 30** (Nexa demo plan term). Maya and Leela stay. Total **USD 450 → 284** from Oct 1. No September refund. COBRA referral acknowledged by the administrator. |
-| Loss of other coverage | Oct 31, 2026, 9:00 AM ET | Maya employee-only. Arjun's job ended Oct 12; coverage ends **Oct 31**. | Arjun added from **Nov 1** (Nexa advance-request rule). Total **USD 166 → 332**. First change on the Nov 13 run, no catch-up. A first request on Nov 2 would return Dec 1 and flag a gap. |
+| Birth | Sep 27, 2026, 9:00 AM ET | Maya employee-only. Arjun not enrolled. Ava born Sep 1. | Ava on medical from **Sep 1**. Medical USD 150 → 250. Only the Sep 15 paycheck was short → catch-up **USD 100**. Sep 30 paycheck: 250 + 100 + 12 + 4 = **USD 366**. Next run **USD 266**. |
+| Divorce | Sep 28, 2026, 9:00 AM ET | Maya, Arjun, Leela on family coverage. Divorce final Sep 15. | Arjun ends **Sep 30**. Maya and Leela stay. Total **USD 450 → 284** from the Oct 15 run. No September refund. COBRA referral sent and acknowledged. |
+| Loss of other coverage | Oct 31, 2026, 9:00 AM ET | Maya employee-only. Arjun's coverage ends **Oct 31**. | Arjun added from **Nov 1**. Total **USD 166 → 332** on the Nov 13 run, no catch-up. |
 
-Reset: demo operator → Simulators → Demo controls → "Reset this scenario" (confirmation; only
-that scenario's synthetic records change; earlier revisions stay in storage history).
+Reset: demo operator → Simulators → Demo controls → "Reset this scenario".
 
-## Main walkthrough (birth, with the wrong-date repair)
-1. **Maya**: Benefits → Report a life event → Family changes → Birth. Add Ava Shah, born
-   2026-09-01 (SSN not issued yet is fine). The deadline appears early ("You can submit this
-   request by October 1, 2026…").
-2. Documents: the step has a **Demo documents** panel. To show the AI catching a problem,
-   download "Hospital record showing September 2", upload it, and see the conflict with the form;
-   choose which date is correct (both are kept). Or download the happy-path record (Sep 1) and
-   confirm the proposed date of birth. Benefit changes: medical only, Aetna Standard; see
-   USD 150 → 250 and the labeled catch-up forecast. Review → attest → Submit. Receipt shows the
-   case number and received time.
-3. **Daniel** (second window): Life events → the case. With the happy-path document the
-   evidence shows **AI match 100%** and is verified automatically, so Daniel just clicks
-   **Approve this version**. (A problem document shows a lower score and what to fix.) Approval queues carrier work; it does not mark
-   coverage.
-4. **Demo operator**: Controls → set preset "Carrier returns next-month start". Advance to next
-   batch (10:00 PM). Carrier inbox → open batch → Acknowledge transport → Accept file → Publish
-   observations for accepted records.
-5. Reconciliation catches: "Ava Shah's requested start is September 1. The carrier record shows
-   October 1." Maya sees "We are correcting a provider response. No action is needed from you
-   right now." Daniel → Send correction for this line only.
-6. Operator: advance to next batch, acknowledge, accept, publish. The line matches. Advance to
-   next payday (Sep 30 posts at the old USD 150).
-7. Daniel → Payroll changes → Authorize the USD 200 catch-up (recalculated from posted payroll).
-   Operator → Payroll → Apply instruction → Post the Oct 15 run: USD 466. Post Oct 30: USD 266.
-8. Maya → tracker shows Complete; Pay shows the posted payslip.
+## Autopilot (on by default)
+Demo controls → Autopilot. When a case is clean, the system does the follow-up work itself,
+through the same checks and audit trail as the manual steps:
+- Approves the case when every check passed and every document is an **AI match of 100%**.
+- Sends the change to the carrier and records a simulated carrier confirmation.
+- Authorizes payroll catch-ups up to USD 500 and applies them to the next run.
+- Sends the COBRA referral (address on file) and records the administrator's receipt.
 
-## Divorce walkthrough (COBRA)
-Maya reports Divorce → "Remove from Nexa" → final Sep 15, Arjun, no child order. Submit.
-Daniel sees a COBRA task immediately. Approve (after evidence) → Confirm and send referral.
-Operator runs the batch (medical) and processes the API requests (dental, vision), publishes.
-Payroll: apply and post Oct 15 (USD 284). COBRA administrator → Acknowledge receipt → case
-completes while the continuation workflow stays with the administrator. Maya never sees
-Arjun's address, election or payments.
+It stops for a person when a document is under 100%, a check needs review, the carrier returns
+a different result, or the payroll adjustment is large or retroactive.
 
-## Loss walkthrough
-Maya reports Other health coverage → Coverage from another plan ended → Arjun, employment
-ended, last workday Oct 12, coverage ends Oct 31. Upload `fx_loss_notice`. Start Nov 1 appears.
-Submit → Daniel approves → carrier confirms ("Confirmed from November 1", not active today) →
-payroll Nov 13 posts USD 332.
+Status after submit on a clean case: **Enrolled · pay update scheduled** (divorce: **Removal
+confirmed · pay update scheduled**). The case turns **Complete** once the paycheck with the new
+deduction posts: operator → Payroll → Post the run (or Advance to next payday).
+
+## Main walkthrough (autopilot on, about 3 minutes per flow)
+1. **Maya** (Birth scenario): Benefits → Report a life event → Birth. Add Ava Shah, born
+   2026-09-01. Documents step → Demo documents → download the happy-path hospital record and
+   upload it: **AI match 100%, verified automatically**. Benefit changes: medical, Aetna Standard,
+   USD 150 → 250. Review → attest → Submit.
+2. The tracker already shows HR approved, sent to the provider, confirmed, pay update scheduled.
+   **Daniel** sees the case approved by "Rules engine (straight-through)" with the full audit.
+3. **Operator** → Payroll → post the Sep 30 run: USD 366. Maya's tracker shows **Complete**.
+4. Problem path: upload the Sep 2 record instead. The AI flags the date conflict, the score drops
+   below 100%, and the case waits for Daniel.
+
+Divorce (Divorce scenario): Remove from Nexa → final Sep 15, Arjun, no child order → upload the
+happy-path summary → Submit. Arjun's end date is confirmed, COBRA referral is sent and received.
+Post the Oct 15 run (USD 284) → Complete. Maya never sees Arjun's address or COBRA details.
+
+Loss (Loss scenario): Other health coverage → Coverage from another plan ended → Arjun,
+employment ended, coverage ends Oct 31 → upload the notice naming Arjun → Submit. Confirmed from
+Nov 1 (not active today). Post the Nov 13 run (USD 332) → Complete.
+
+## Manual walkthrough (autopilot off: shows each hand-off)
+Turn autopilot off in Demo controls. Daniel clicks **Approve this version**. Operator: Advance
+to next batch (10:00 PM) → Carrier inbox → Acknowledge transport → Accept file → Publish. Arm
+"Carrier returns next-month start" first to show reconciliation catching "requested Sep 1,
+carrier shows Oct 1"; Daniel → Send correction for this line only. Daniel authorizes the payroll
+catch-up; operator applies the instruction and posts the run. In the birth flow, a late carrier
+confirmation misses the Sep 30 cutoff, so the catch-up is USD 200 and the Oct 15 paycheck is
+USD 466.
 
 ## Failure presets (operator → Demo controls)
 Carrier next-month start · Carrier rejects one record (use twins) · Transport outcome unknown

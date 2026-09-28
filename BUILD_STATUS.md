@@ -41,7 +41,8 @@ fallback (the app refuses to run without Supabase credentials; tests use an in-m
   14 synthetic evidence fixtures.
 
 ## Tests actually run
-- `cd app && npx vitest run` → 33/33 (rules, money, three journeys, 11 edge cases, permissions).
+- `cd app && npx vitest run` → 40/40 (rules, money, three journeys, edge cases, permissions,
+  autopilot straight-through for all three flows plus problem cases that must stop).
 - `npx tsc --noEmit` clean. Vercel production builds READY for every pushed commit.
 - Delegates' browser checks on local dev (screenshots in artifacts/qa, not committed):
   employee wizard to submit, HR case actions, simulator stages, COBRA, reset isolation.
@@ -67,10 +68,19 @@ Identity provider, carrier transport and responses, payroll runs, COBRA administ
   route (direct-to-storage upload would fix it). No malware scanning (stated in the UI).
 - Emma rate budget is per server instance.
 
+## Autopilot (straight-through processing)
+`server/domain/autopilot.ts` runs after every command (skipped when the operator turns it off).
+It issues the same commands a person or simulator would: policy approval when every check passed
+and every document scored 100%, batch send, simulated carrier acceptance, payroll authorization
+up to USD 500 (not retroactive), COBRA referral and receipt. Status reads "Enrolled · pay update
+scheduled" once the carrier confirms; "Complete" still waits for the posted paycheck.
+
 ## Fixed after live verification
 Evidence upload failing after a reset (storage path reuse); Emma refusing to explain on-page
 numbers; HR provider-issue banner; roster name for a new child; dependent tier on the carrier
 roster; pay runs posting ahead of the business clock; future-changes table column; initials.
+Divorce started in a scenario where the spouse is not on Maya's plan: the details step now says
+so and blocks Continue, instead of a vague banner on the options step.
 
 ## Known gaps (not fixed)
 - Cost tables use two unlabeled Now/After column pairs in places.

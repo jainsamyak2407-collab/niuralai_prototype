@@ -7,6 +7,7 @@ export interface Ctx {
   s: ScenarioState;
   actor: DemoUser;
   real: string; // real wall-clock ISO time (audit ingestion)
+  nested?: boolean; // set for commands issued by autopilot
 }
 
 export class DomainError extends Error {

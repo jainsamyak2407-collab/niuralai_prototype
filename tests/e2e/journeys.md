@@ -71,7 +71,7 @@ Check:
 Ops:
 13. Controls → "Advance to next batch" (batch_b2, 1 record) → Carrier inbox → Acknowledge →
     Accept file validation → Publish observations. Roster: Ava Shah, Medical, Sep 1, 2026.
-    Daniel's case: "Coverage confirmed; pay scheduled".
+    Daniel's case: "Enrolled · pay update scheduled".
 14. Controls → "Advance to next payday" ("Pay run 2026-09-30 posted", USD 166.00 at old rate).
 Daniel:
 15. /admin/payroll → the instruction shows + USD 200.00, "Needs authorization" →

@@ -624,6 +624,7 @@ export interface ScenarioState {
   seededAt: ISOTime;
   clock: { businessNow: ISOTime };
   preset: FailurePreset;
+  autopilot?: boolean; // undefined = on. Straight-through processing for clean cases (demo setting)
   counters: Record<string, number>;
   people: Person[];
   elections: Election[];

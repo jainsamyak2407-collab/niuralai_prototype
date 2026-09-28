@@ -232,7 +232,15 @@ export function DetailsForm({ caseId, version, eventCode, facts, household, cove
   const children = f.children ?? [];
   const setChild = (i: number, patch: Partial<ChildFacts>) => set({ children: children.map((k, j) => (j === i ? { ...k, ...patch } : k)) });
 
-  const blockContinue = code === "divorce" && f.direction === "lost_outside_coverage" ? "Start the loss-of-coverage request to continue. This request does not apply." : null;
+  const removing = code === "divorce" && (f.direction === "remove_from_nexa" || f.direction === "both");
+  const namedSpouse = removing && f.formerSpousePersonId ? people.find((p) => p.id === f.formerSpousePersonId) : undefined;
+  const spouseNotCovered = !!namedSpouse && !namedSpouse.covered;
+  const blockContinue =
+    code === "divorce" && f.direction === "lost_outside_coverage"
+      ? "Start the loss-of-coverage request to continue. This request does not apply."
+      : spouseNotCovered && f.direction === "remove_from_nexa"
+        ? `${namedSpouse?.name} is not on your Nexa plan, so there is no one to remove.`
+        : null;
 
   return (
     <form
@@ -389,6 +397,12 @@ export function DetailsForm({ caseId, version, eventCode, facts, household, cove
                     )}
                   </Field>
                 </div>
+                {spouseNotCovered && namedSpouse ? (
+                  <Banner tone="warning" title={`${namedSpouse.name} is not on your Nexa plan`}>
+                    Your Nexa coverage today does not include {namedSpouse.name}, so nothing ends and your deduction stays the same. If you lost coverage under their plan, choose
+                    &ldquo;I lost coverage under their plan&rdquo; above. If you think your coverage list is wrong, ask Emma or contact HR.
+                  </Banner>
+                ) : null}
                 <div data-field="childCoverageOrder">
                   <OptionCards
                     name="childCoverageOrder"

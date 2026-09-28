@@ -49,7 +49,7 @@ export default async function IntegrationsSimulatorPage({ searchParams }: { sear
       {tab === "payroll" && v.payroll ? <PayrollSim data={v.payroll} /> : null}
       {tab === "cobra" && v.cobra ? <CobraSim rows={v.cobra} plans={plans} isAdmin={user.role === "cobra_admin"} /> : null}
       {tab === "controls" && v.outbox && v.audit && v.preset !== null ? (
-        <DemoControls now={v.now} nextBatchAt={v.nextBatchAt} preset={v.preset} store={v.store} scenario={v.scenario} outbox={v.outbox} audit={v.audit} names={names} cases={cases} />
+        <DemoControls now={v.now} nextBatchAt={v.nextBatchAt} preset={v.preset} autopilot={v.autopilot} store={v.store} scenario={v.scenario} outbox={v.outbox} audit={v.audit} names={names} cases={cases} />
       ) : null}
     </div>
   );

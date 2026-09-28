@@ -199,6 +199,7 @@ export function seedScenario(scenario: ScenarioId, nowReal: string): ScenarioSta
     seededAt: nowReal,
     clock: { businessNow: clock },
     preset: "none",
+    autopilot: true,
     counters: { case: CASE_BASE[scenario] },
     people: [...people, ...bg.people],
     elections,

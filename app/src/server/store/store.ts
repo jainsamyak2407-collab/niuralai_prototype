@@ -136,10 +136,12 @@ export class MemoryStore implements ScenarioStore {
   readonly durable = false;
   private revs = new Map<string, ScenarioState[]>();
   private files = new Map<string, { bytes: Uint8Array; contentType: string }>();
+  constructor(private autopilot = true) {}
   async load(id: ScenarioId) {
     const list = this.revs.get(id);
     if (!list?.length) {
       const seed = seedScenario(id, new Date().toISOString());
+      seed.autopilot = this.autopilot;
       seed.rev = 1;
       this.revs.set(id, [structuredClone(seed)]);
       return seed;
