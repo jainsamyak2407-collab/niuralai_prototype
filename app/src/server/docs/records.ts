@@ -7,7 +7,7 @@ import { PAYSLIP_FIXTURE } from "@/server/config/payroll";
 import { PLAN_BY_ID, TIER_LABEL } from "@/server/config/plans";
 import { EVENT_LABEL, RULE_BY_ID } from "@/server/config/rules";
 import { DomainError } from "@/server/domain/ctx";
-import { build834, decodeOrder, EDI_LABEL, sha256 } from "@/server/domain/edi";
+import { build834, decodeOrder, EDI_LABEL, insReasons, sha256 } from "@/server/domain/edi";
 import { personName } from "@/server/domain/evaluate";
 import { auditView, employeeBenefitsView, loadState, payslip } from "@/server/views";
 import { Pdf } from "./pdf";
@@ -224,7 +224,7 @@ function batchFor(s: ScenarioState, user: DemoUser, batchId: string | null) {
 export async function edi834(user: DemoUser, scenario: ScenarioId, batchId: string | null): Promise<DocFile> {
   const s = await loadState(scenario);
   const { batch, txns } = batchFor(s, user, batchId);
-  const payload = build834(batch, txns.map((t) => t.order));
+  const payload = build834(batch, txns.map((t) => t.order), insReasons(s.cases));
   const text = `${EDI_LABEL}. ${SYNTHETIC_LABEL}. This label line is not part of the payload; payload sha256 ${sha256(payload)}.\n${payload}\n`;
   return { bytes: new TextEncoder().encode(text), contentType: "text/plain; charset=utf-8", fileName: `illustrative-834-${batch.id}.edi` };
 }
@@ -232,7 +232,7 @@ export async function edi834(user: DemoUser, scenario: ScenarioId, batchId: stri
 export async function ediSummary(user: DemoUser, scenario: ScenarioId, batchId: string | null): Promise<DocFile> {
   const s = await loadState(scenario);
   const { batch, txns } = batchFor(s, user, batchId);
-  const payload = build834(batch, txns.map((t) => t.order));
+  const payload = build834(batch, txns.map((t) => t.order), insReasons(s.cases));
   const hash = sha256(payload);
   const pdf = await Pdf.create({ title: `834 batch summary ${batch.id} (synthetic)`, footer: `${EDI_LABEL} · ${batch.id} · synthetic demo` });
   pdf.title("Illustrative 834 batch summary", `${EDI_LABEL} · batch ${batch.id}`);

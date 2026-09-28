@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { createHash } from "node:crypto";
 import type { EvidenceFile, QleCase } from "@/lib/contracts/domain";
-import { fmtDateLong } from "@/lib/dates";
+import { fmtDateLong, isValidDate } from "@/lib/dates";
 import { readDocument, readNoteFor, statusFor, toProposedFacts } from "@/server/ai/evidence";
 import { scoreDocument } from "@/server/ai/confidence";
 import { evaluateCase } from "@/server/domain/evaluate";
@@ -49,8 +49,9 @@ function messageFor(f: EvidenceFile, answersRequest: boolean): string {
   if (f.readMode === "manual") return `Your document was saved. AI reading is unavailable, so HR will read it (manual review).${tail}`;
   const conflict = f.proposedFacts.find((p) => p.conflictWith);
   if (conflict) {
-    const form = conflict.conflictWith!.formValue.split(", ").map((v) => fmtDateLong(v, true)).join(" and ");
-    return `The document shows ${fmtDateLong(conflict.value, true)}; your form shows ${form}. Please confirm which is correct.${tail}`;
+    const show = (v: string) => (isValidDate(v) ? fmtDateLong(v, true) : v);
+    const form = conflict.conflictWith!.formValue.split(", ").map(show).join(" and ");
+    return `The document shows ${show(conflict.value)}; your form shows ${form}. Choose which is correct; picking the document corrects your form.${tail}`;
   }
   if (f.status === "needs_confirmation") return `${f.readMode === "fixture_hash" ? "We matched a synthetic sample file (hash match)." : "We read your document."} Check each value and confirm it.${tail}`;
   return `Your document was saved for HR review.${tail}`;
@@ -163,7 +164,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       const c = s.cases.find((x) => x.id === caseId);
       if (!f || !c) throw new DomainError(404, "file_not_found", "We could not find that document.");
       const ctx: Ctx = { s, actor: user, real: new Date().toISOString() };
-      const facts = read.extraction ? toProposedFacts(read.extraction, c) : [];
+      const facts = read.extraction ? toProposedFacts(read.extraction, c, s.people.map((p) => `${p.firstName} ${p.lastName}`)) : [];
       f.readMode = read.mode;
       f.proposedFacts = facts;
       f.documentType = read.extraction?.documentType ?? null;

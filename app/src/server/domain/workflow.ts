@@ -206,6 +206,15 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
         else c.facts.eventDate = value;
       }
       if (fact.field === "coverageEndDate" && /^\d{4}-\d{2}-\d{2}$/.test(value)) c.facts.coverageEndDate = value;
+      // A child's name typed on the form takes the confirmed spelling.
+      if (fact.field === "personName" && fact.conflictWith && cmd.choice !== "form") {
+        const kid = c.facts.children?.find((k) => `${k.firstName} ${k.lastName}`.trim().toLowerCase() === fact.conflictWith!.formValue.toLowerCase());
+        const [first, ...rest] = value.split(/\s+/);
+        if (kid && first) {
+          kid.firstName = first;
+          if (rest.length) kid.lastName = rest.join(" ");
+        }
+      }
       if (fact.field === "lastWorkday" && /^\d{4}-\d{2}-\d{2}$/.test(value)) c.facts.lastWorkday = value;
       if (f.proposedFacts.every((p) => p.confirmed || !p.conflictWith) && f.status === "needs_confirmation" && f.proposedFacts.filter((p) => ["eventDate", "coverageEndDate", "personName"].includes(p.field)).every((p) => p.confirmed)) {
         f.status = "accepted_for_review";
@@ -499,8 +508,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
     }
     case "hr.sendBatch": {
       const b = runBatch(ctx);
-      audit(ctx, { caseId: null, type: "hr.batch_sent", summary: `${ctx.actor.name} sent batch file ${b?.id} to the carrier with ${b?.recordCount} record(s), ahead of the nightly run.` });
-      return { ok: true, entityId: b?.id, message: `Batch file sent to the carrier with ${b?.recordCount} record${b?.recordCount === 1 ? "" : "s"}. Coverage is confirmed when the carrier's record matches.` };
+      audit(ctx, { caseId: null, type: "hr.batch_sent", summary: `${ctx.actor.name} ran the EDI 834 batch now (${b?.id}, ${b?.recordCount} record(s)) instead of waiting for the 10:00 PM ET run.` });
+      return { ok: true, entityId: b?.id, message: `Batch ${b?.id} sent: EDI 834 file with ${b?.recordCount} record${b?.recordCount === 1 ? "" : "s"}. Coverage is confirmed when the carrier's record matches.` };
     }
     case "hr.decide": {
       const c = ownCase(ctx, cmd.caseId);
@@ -608,7 +617,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       inst.state = "scheduled";
       closeTasks(ctx, (t) => t.instructionId === inst.id && t.kind === "payroll_authorization", "Authorized.");
       const c = findCase(s, inst.caseId);
-      audit(ctx, { caseId: c.id, type: "payroll.authorized", summary: `Payroll adjustment authorized: ${fmtMoney(inst.adjustmentCents, "USD", { sign: true })} for ${inst.benefit}${changed ? " (recalculated from the posted ledger)" : ""}.`, employeeSummary: null });
+      const auto = ctx.actor.id === RULES_ACTOR.id;
+      audit(ctx, { caseId: c.id, type: "payroll.authorized", summary: `Payroll adjustment authorized${auto ? " automatically after the carrier confirmed coverage (HR approved this pay change with the case)" : ""}: ${fmtMoney(inst.adjustmentCents, "USD", { sign: true })} for ${inst.benefit}${changed ? " (recalculated from the posted ledger)" : ""}.`, employeeSummary: null });
       notifyPayScheduled(ctx, c, inst);
       refreshCompletion(ctx, c);
       return { ok: true, message: `Authorized ${fmtMoney(inst.adjustmentCents, "USD", { sign: true })}${changed ? " after recalculating from posted payroll" : ""}.` };

@@ -15,7 +15,7 @@ import { employeeCost, plan, TIER_LABEL } from "@/server/config/plans";
 import { BATCH_SEND } from "@/server/config/payroll";
 import { EVENT_LABEL } from "@/server/config/rules";
 import { addTask, addBusinessDays, aiLog, audit, closeTasks, type Ctx, DomainError, EMPLOYEE_ID, HR_BACKUP, HR_ID, hoursFrom, metric, nextId, notify, now, today } from "./ctx";
-import { build834, sha256, txnSummaryLine, validate834 } from "./edi";
+import { build834, insReasons, sha256, txnSummaryLine, validate834 } from "./edi";
 import { electionOn, personName } from "./evaluate";
 import { computeAdjustment, priorAdjustments, targetRunFor } from "./payroll";
 
@@ -150,7 +150,7 @@ export function runBatch(ctx: Ctx, auto = false) {
   const batchId = nextId(s, "batch");
   const control = String(100 + (s.counters.batch ?? 0));
   const sentAt = now(ctx);
-  const payload = build834({ id: batchId, controlNumber: control, sentAt }, queued.map((t) => t.order));
+  const payload = build834({ id: batchId, controlNumber: control, sentAt }, queued.map((t) => t.order), insReasons(s.cases));
   const v = validate834(payload, queued.length);
   const batch = {
     id: batchId,

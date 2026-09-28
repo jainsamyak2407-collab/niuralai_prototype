@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { CarrierBatch, CarrierTxn, ChangeOrder } from "@/lib/contracts/domain";
+import type { CarrierBatch, CarrierTxn, ChangeOrder, QleCase } from "@/lib/contracts/domain";
 import { fmtDate } from "@/lib/dates";
 import { plan, TIER_LABEL } from "@/server/config/plans";
 
@@ -12,38 +12,61 @@ export const EDI_LABEL = "Illustrative 834 — not carrier-certified";
 const MAINT: Record<ChangeOrder["action"], string> = { add: "021", terminate: "024", tier_change: "001" };
 const REL: Record<string, string> = { self: "18", spouse: "01", former_spouse: "01", child: "19" };
 const LEVEL = { EE: "EMP", ES: "ESP", EC: "ECH", FAM: "FAM" } as const;
+const LINE: Record<ChangeOrder["benefit"], string> = { medical: "HLT", dental: "DEN", vision: "VIS" };
+// INS04 maintenance reason by life event (X12 5010 834 code list subset).
+const REASON: Partial<Record<QleCase["eventCode"], string>> = { birth: "02", adoption: "05", placement_for_adoption: "05", divorce: "01", marriage: "32", loss_of_other_coverage: "EC", medicaid_chip_loss: "EC" };
 const d8 = (d: string | null) => (d ? d.replaceAll("-", "") : "");
 
-export function build834(batch: Pick<CarrierBatch, "id" | "controlNumber" | "sentAt">, orders: ChangeOrder[]): string {
+/** INS04 reason code per case, from the life event. */
+export function insReasons(cases: Pick<QleCase, "id" | "eventCode">[]): Record<string, string> {
+  return Object.fromEntries(cases.map((c) => [c.id, REASON[c.eventCode] ?? "AI"]));
+}
+
+/** Local Eastern date (CCYYMMDD) and time (HHMM) of the send, as the envelope carries it. */
+function stamp(iso: string) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(new Date(iso)).map((x) => [x.type, x.value]));
+  return { date: `${p.year}${p.month}${p.day}`, time: `${p.hour}${p.minute}` };
+}
+
+export function build834(batch: Pick<CarrierBatch, "id" | "controlNumber" | "sentAt">, orders: ChangeOrder[], reasons: Record<string, string> = {}): string {
   const ctl = batch.controlNumber.padStart(9, "0");
-  const date = batch.sentAt.slice(0, 10).replaceAll("-", "");
+  const { date, time } = stamp(batch.sentAt);
   const segs: string[] = [];
+  const subscribers = orders.filter((o) => o.relationship === "self").length;
   segs.push(`ST*834*0001*005010X220A1`);
-  segs.push(`BGN*00*${batch.id}*${date}*2200****2`);
+  segs.push(`BGN*00*${batch.id.toUpperCase()}*${date}*${time}*ET***2`);
+  segs.push(`REF*38*${orders[0]?.groupNumber ?? "NEXA-GROUP"}`);
+  segs.push(`DTP*007*D8*${date}`);
+  segs.push(`QTY*TO*${orders.length}`);
+  segs.push(`QTY*ET*${subscribers}`);
+  segs.push(`QTY*DT*${orders.length - subscribers}`);
   segs.push(`N1*P5*NEXA DEMO SPONSOR*FI*000000000`);
   segs.push(`N1*IN*AETNA-LABELED DEMO CARRIER*FI*000000000`);
   for (const o of orders) {
-    const subscriber = o.relationship === "self" ? "Y" : "N";
+    const self = o.relationship === "self";
     const [first, ...rest] = o.memberName.split(" ");
-    segs.push(`INS*${subscriber}*${REL[o.relationship] ?? "19"}*${MAINT[o.action]}*XN*A***FT`);
+    const effective = o.action === "terminate" ? o.endDate : o.startDate;
+    segs.push(`INS*${self ? "Y" : "N"}*${REL[o.relationship] ?? "19"}*${MAINT[o.action]}*${reasons[o.caseId] ?? "AI"}*A${self ? "***FT" : ""}`);
     segs.push(`REF*0F*${o.subscriberId}`);
     segs.push(`REF*1L*${o.groupNumber}`);
     segs.push(`REF*ZZ*${o.operationKey}`);
+    segs.push(`DTP*303*D8*${d8(effective)}`);
     segs.push(`NM1*IL*1*${rest.join(" ").toUpperCase() || "UNKNOWN"}*${(first ?? "").toUpperCase()}`);
-    if (o.dob) segs.push(`DMG*D8*${d8(o.dob)}`);
-    segs.push(`HD*${MAINT[o.action]}**HLT*${o.planId.toUpperCase()}*${LEVEL[o.tier]}`);
+    if (o.dob) segs.push(`DMG*D8*${d8(o.dob)}*U`);
+    segs.push(`HD*${MAINT[o.action]}**${LINE[o.benefit] ?? "HLT"}*${o.planId.toUpperCase()}*${LEVEL[o.tier]}`);
     if (o.action === "terminate") segs.push(`DTP*349*D8*${d8(o.endDate)}`);
     else segs.push(`DTP*348*D8*${d8(o.startDate)}`);
   }
   segs.push(`SE*${segs.length + 1}*0001`);
-  const body = segs.map((s) => `${s}~`).join("\n");
   return [
-    `ISA*00*          *00*          *ZZ*NEXADEMO       *ZZ*AETNADEMO      *${date.slice(2)}*2200*^*00501*${ctl}*0*T*:~`,
-    `GS*BE*NEXADEMO*AETNADEMO*${date}*2200*${Number(ctl)}*X*005010X220A1~`,
-    body,
-    `GE*1*${Number(ctl)}~`,
-    `IEA*1*${ctl}~`,
-  ].join("\n");
+    `ISA*00*          *00*          *ZZ*NEXADEMO       *ZZ*AETNADEMO      *${date.slice(2)}*${time}*^*00501*${ctl}*0*T*:`,
+    `GS*BE*NEXADEMO*AETNADEMO*${date}*${time}*${Number(ctl)}*X*005010X220A1`,
+    ...segs,
+    `GE*1*${Number(ctl)}`,
+    `IEA*1*${ctl}`,
+  ]
+    .map((x) => `${x}~`)
+    .join("\n");
 }
 
 export function sha256(text: string | Buffer): string {
@@ -64,7 +87,7 @@ export function validate834(payload: string, expectedMembers: number): { ok: boo
   const members = segs.filter((s) => s.startsWith("INS*")).length;
   if (members !== expectedMembers) errors.push(`Member loops ${members} ≠ change orders ${expectedMembers}.`);
   const hd = segs.filter((s) => s.startsWith("HD*")).length;
-  const dtp = segs.filter((s) => s.startsWith("DTP*")).length;
+  const dtp = segs.filter((s) => /^DTP\*34[89]\*/.test(s)).length;
   if (hd !== members || dtp !== members) errors.push("Each member loop needs one HD and one coverage date.");
   if (segs.some((s) => /DTP\*34[89]\*D8\*$/.test(s))) errors.push("A coverage date is missing.");
   return { ok: errors.length === 0, errors };

@@ -24,6 +24,7 @@ import {
   ResolveTaskButton,
   SendBatchButton,
 } from "../ExecutionActions";
+import { Edi834Button } from "../Edi834Button";
 import {
   BENEFIT,
   COBRA,
@@ -253,6 +254,7 @@ export function CoverageSection({ v }: { v: HrCaseView }) {
                       {t.batch ? (
                         <>
                           <p className="tabular">{t.batch.id}</p>
+                          <Edi834Button batchId={t.batch.id} />
                           <a
                             href={`/api/documents/edi_834?batchId=${encodeURIComponent(t.batch.id)}`}
                             className="inline-flex items-center gap-1 text-xs text-primary hover:underline"

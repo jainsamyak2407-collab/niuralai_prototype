@@ -113,7 +113,11 @@ function differs(docValue: string, formValue: string | null): boolean {
   return !formValue.split(", ").includes(docValue);
 }
 
-export function toProposedFacts(x: Extraction, c: QleCase): ProposedFact[] {
+const norm = (n: string) => n.toLowerCase().replace(/[^a-z\s'-]/g, "").replace(/\s+/g, " ").trim();
+const ADDITIONS = ["birth", "adoption", "placement_for_adoption"];
+
+/** householdNames: people already on record (never flagged). Children typed on the form are compared by name. */
+export function toProposedFacts(x: Extraction, c: QleCase, householdNames: string[] = []): ProposedFact[] {
   const src = (field: string, match?: string) => {
     const s = x.sources.find((y) => y.field === field && (!match || y.quote.toLowerCase().includes(match.toLowerCase()))) ?? (match ? x.sources.find((y) => y.quote.toLowerCase().includes(match.toLowerCase())) : undefined);
     return { page: s?.page ?? null, quote: s?.quote ?? null };
@@ -135,8 +139,15 @@ export function toProposedFacts(x: Extraction, c: QleCase): ProposedFact[] {
   }
   // The employee's own name is already known; only other people need confirming.
   const self = c.employeeName.trim().toLowerCase();
-  for (const p of x.people.filter((y) => y.name.trim().toLowerCase() !== self).slice(0, 4)) {
-    out.push({ field: "personName", label: `Person named${p.role ? ` (${p.role})` : ""}`, value: p.name, ...src("personName", p.name), confirmed: null });
+  const docPeople = x.people.filter((y) => y.name.trim().toLowerCase() !== self).slice(0, 4);
+  // A child's name is typed by the employee, so a typo can differ from the document.
+  const kids = ADDITIONS.includes(c.eventCode) ? (c.facts.children ?? []).map((k) => `${k.firstName} ${k.lastName}`.trim()).filter(Boolean) : [];
+  const known = new Set([...householdNames, ...kids].map(norm));
+  const unmatchedKids = kids.filter((k) => !docPeople.some((p) => norm(p.name) === norm(k)));
+  for (const p of docPeople) {
+    const fact: ProposedFact = { field: "personName", label: `Person named${p.role ? ` (${p.role})` : ""}`, value: p.name, ...src("personName", p.name), confirmed: null };
+    if (!known.has(norm(p.name)) && unmatchedKids.length) fact.conflictWith = { formValue: unmatchedKids.shift()! };
+    out.push(fact);
   }
   return out;
 }
@@ -164,7 +175,8 @@ export function readNoteFor(r: ReadResult, c: QleCase, facts: ProposedFact[]): s
   if (!facts.some((f) => f.field !== "documentType")) parts.push("No dates or names were found to confirm. HR will read this document.");
   if (facts.some((f) => f.conflictWith)) {
     const f = facts.find((y) => y.conflictWith)!;
-    parts.push(`The document shows ${fmtDateLong(f.value, true)}; your form shows ${f.conflictWith!.formValue.split(", ").map((v) => fmtDateLong(v, true)).join(" and ")}. Please confirm which is correct.`);
+    const show = (v: string) => (isValidDate(v) ? fmtDateLong(v, true) : v);
+    parts.push(`The document shows ${show(f.value)}; your form shows ${f.conflictWith!.formValue.split(", ").map(show).join(" and ")}. Please confirm which is correct.`);
   }
   return parts.join(" ");
 }

@@ -1,3 +1,4 @@
+import { Edi834Button } from "@/components/hr/Edi834Button";
 import { Download, FileStack } from "lucide-react";
 import { requireSession } from "@/server/guard";
 import { hrIntegrationsView } from "@/server/views";
@@ -183,6 +184,7 @@ export default async function AdminIntegrationsPage() {
                     </Td>
                     <Td className="align-top!">
                       <div className="flex flex-col gap-1">
+                        <Edi834Button batchId={b.id} />
                         <a
                           href={`/api/documents/edi_834?batchId=${encodeURIComponent(b.id)}`}
                           className="inline-flex items-center gap-1 text-[13px] text-primary hover:underline"

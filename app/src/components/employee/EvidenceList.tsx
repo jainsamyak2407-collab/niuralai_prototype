@@ -103,7 +103,7 @@ function FactRow({ fact, busy, onConfirm }: { fact: ProposedFact; busy: boolean;
       </div>
       {!fact.confirmed && fact.conflictWith ? (
         <div className="mt-2 rounded-[8px] bg-warning-soft px-3 py-2 text-[13px] text-ink">
-          The document shows {show(fact.value)}; your form shows {show(fact.conflictWith.formValue)}. Please confirm which is correct.
+          The document shows {show(fact.value)}; your form shows {show(fact.conflictWith.formValue)}. If the document is right, correct your form in one click.
         </div>
       ) : null}
       {!fact.confirmed ? (
@@ -111,10 +111,10 @@ function FactRow({ fact, busy, onConfirm }: { fact: ProposedFact; busy: boolean;
           {fact.conflictWith ? (
             <>
               <Button variant="outline" size="sm" disabled={busy} onClick={() => onConfirm("document")}>
-                Use document value ({show(fact.value)})
+                Correct my form to the document ({show(fact.value)})
               </Button>
               <Button variant="outline" size="sm" disabled={busy} onClick={() => onConfirm("form")}>
-                Use form value ({show(fact.conflictWith.formValue)})
+                Keep my form value ({show(fact.conflictWith.formValue)})
               </Button>
             </>
           ) : (

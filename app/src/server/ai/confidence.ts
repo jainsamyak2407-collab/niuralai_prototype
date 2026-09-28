@@ -24,7 +24,8 @@ export function scoreDocument(s: ScenarioState, c: QleCase, mode: "model" | "fix
   const issues: string[] = [];
   let score = 100;
   for (const f of facts.filter((p) => p.conflictWith)) {
-    issues.push(`Document shows ${fmtDateLong(f.value, true)}; the form shows ${f.conflictWith!.formValue.split(", ").map((v) => (isValidDate(v) ? fmtDateLong(v, true) : v)).join(" and ")}.`);
+    const show = (v: string) => (isValidDate(v) ? fmtDateLong(v, true) : v);
+    issues.push(`Document shows ${show(f.value)}; the form shows ${f.conflictWith!.formValue.split(", ").map(show).join(" and ")}.`);
     score -= 40;
   }
   const loss = LOSS.includes(c.eventCode);

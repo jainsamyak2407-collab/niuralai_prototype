@@ -21,7 +21,6 @@ export const RULES_ACTOR: DemoUser = {
   partnerId: PARTNER_ID,
   employerId: NEXA.id,
 };
-const AUTO_PAYROLL_LIMIT_CENTS = 50_000; // adjustments up to USD 500 are authorized by policy
 
 let seq = 0;
 type AutoCommand = Command extends infer C ? (C extends Command ? Omit<C, "idempotencyKey"> : never) : never;
@@ -72,9 +71,11 @@ export function runAutopilot(ctx: Ctx) {
     for (const t of s.txns) {
       if (t.route === "api" && !t.superseded && t.delivery === "acknowledged" && t.memberResult === "pending") progressed = run(ctx, carrier, { type: "ops.publishAccepted", batchId: t.id }) || progressed;
     }
-    // Payroll: small adjustments authorized by policy; the payroll system applies the instruction.
+    // Payroll: created only after the carrier confirms coverage. HR already reviewed this pay
+    // change (new deduction and catch-up) when approving the case, so it is authorized here.
+    // A retroactive change flagged "Payroll review required" still waits for HR. small adjustments authorized by policy; the payroll system applies the instruction.
     for (const i of s.instructions) {
-      if (i.state === "approval_needed" && Math.abs(i.adjustmentCents) <= AUTO_PAYROLL_LIMIT_CENTS && !i.adjustmentBasis.includes("Payroll review required")) progressed = run(ctx, RULES_ACTOR, { type: "hr.authorizePayroll", instructionId: i.id }) || progressed;
+      if (i.state === "approval_needed" && !i.adjustmentBasis.includes("Payroll review required")) progressed = run(ctx, RULES_ACTOR, { type: "hr.authorizePayroll", instructionId: i.id }) || progressed;
       if (i.state === "scheduled") progressed = run(ctx, ops, { type: "ops.payrollInstruction", instructionId: i.id, outcome: "accept" }) || progressed;
     }
     // COBRA: send the minimal referral once the removal is approved; the administrator acknowledges.

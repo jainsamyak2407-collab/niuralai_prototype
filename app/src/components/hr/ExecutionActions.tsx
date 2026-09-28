@@ -601,7 +601,7 @@ export function InternalNoteForm({ caseId }: { caseId: string }) {
   );
 }
 
-// ---------------- Carrier batch file: HR sends it now ----------------
+// ---------------- Carrier batch: nightly at 10 PM ET, or HR runs it now ----------------
 
 export function SendBatchButton({ records }: { records: number }) {
   const [open, setOpen] = useState(false);
@@ -614,13 +614,13 @@ export function SendBatchButton({ records }: { records: number }) {
   return (
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
-        Send batch file to carrier ({records})
+        Run batch now ({records})
       </Button>
       <div className="text-left">
         <ConfirmModal
           open={open}
-          title="Send the batch file to the carrier?"
-          confirmLabel="Send batch file"
+          title="Run the carrier batch now?"
+          confirmLabel="Run batch now"
           pending={pending}
           onCancel={() => {
             setOpen(false);
@@ -629,9 +629,10 @@ export function SendBatchButton({ records }: { records: number }) {
           onConfirm={() => void go()}
         >
           <p>
-            Sends {records} approved change{records === 1 ? "" : "s"} to the
-            carrier now instead of waiting for the 10:00 p.m. file. Coverage is
-            confirmed only when the carrier&apos;s record matches.
+            The EDI 834 batch runs every night at 10:00 PM ET. Running it now
+            sends the {records} approved change{records === 1 ? "" : "s"} waiting
+            for tonight&apos;s file. Coverage is confirmed only when the
+            carrier&apos;s record matches.
           </p>
           <div className="mt-3">
             <CommandError result={result} onRetry={() => void go()} />
