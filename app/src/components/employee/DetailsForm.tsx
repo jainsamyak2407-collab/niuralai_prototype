@@ -228,6 +228,25 @@ export function DetailsForm({ caseId, version, eventCode, facts, household, cove
     setResult(res);
   }
 
+  // Demo helper: the divorce household (Arjun on Maya's family plan) lives in the Divorce scenario.
+  async function openDivorceScenario() {
+    setStarting("divorce");
+    const sw = await fetch("/api/session/scenario", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ scenarioId: "divorce" }) }).catch(() => null);
+    if (!sw?.ok) {
+      setStarting(null);
+      setResult({ ok: false, code: "switch_failed", message: "We could not open the Divorce scenario. Try again." });
+      return;
+    }
+    const res = await send(cmd({ type: "case.createDraft", eventCode: "divorce" }), { successToast: false });
+    if (res.ok && res.entityId) {
+      router.push(`/employee/life-events/${res.entityId}/details`);
+      router.refresh();
+      return;
+    }
+    setStarting(null);
+    setResult(res);
+  }
+
   const err = (k: string) => errors[k] ?? null;
   const children = f.children ?? [];
   const setChild = (i: number, patch: Partial<ChildFacts>) => set({ children: children.map((k, j) => (j === i ? { ...k, ...patch } : k)) });
@@ -398,9 +417,18 @@ export function DetailsForm({ caseId, version, eventCode, facts, household, cove
                   </Field>
                 </div>
                 {spouseNotCovered && namedSpouse ? (
-                  <Banner tone="warning" title={`${namedSpouse.name} is not on your Nexa plan`}>
+                  <Banner
+                    tone="warning"
+                    title={`${namedSpouse.name} is not on your Nexa plan`}
+                    action={
+                      <Button type="button" size="sm" onClick={() => void openDivorceScenario()} pending={starting === "divorce"} pendingLabel="Opening…">
+                        Open the Divorce scenario
+                      </Button>
+                    }
+                  >
                     Your Nexa coverage today does not include {namedSpouse.name}, so nothing ends and your deduction stays the same. If you lost coverage under their plan, choose
-                    &ldquo;I lost coverage under their plan&rdquo; above. If you think your coverage list is wrong, ask Emma or contact HR.
+                    &ldquo;I lost coverage under their plan&rdquo; above.
+                    <span className="mt-1 block text-muted">Demo: this scenario&apos;s household has Maya on employee-only coverage. The Divorce scenario has Maya, Arjun and Leela on family coverage and starts a fresh divorce request there.</span>
                   </Banner>
                 ) : null}
                 <div data-field="childCoverageOrder">
