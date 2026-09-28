@@ -90,7 +90,15 @@ export function useCommand() {
 /** Stable idempotency key for one form intent; call reset() after success. */
 export function useIntentKey() {
   const ref = useRef<string>(newKey());
-  return { key: ref.current, reset: () => (ref.current = newKey()) };
+  // Getter so a reset followed by a send in the same handler uses the new key.
+  return {
+    get key() {
+      return ref.current;
+    },
+    reset: () => {
+      ref.current = newKey();
+    },
+  };
 }
 
 // ---------------- Form fields ----------------

@@ -266,7 +266,7 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
         addTask(ctx, {
           caseId: c.id,
           kind: "ssn_follow_up",
-          title: `SSN pending for ${k.firstName || "the child"} (restricted)`,
+          title: `Add ${k.firstName || "your child"}'s Social Security number when it is issued`,
           reason: "The demo carrier procedure permits enrollment now and the SSN later. No value is invented.",
           nextAction: "Employee provides the SSN through the secure profile when issued.",
           ownerId: EMPLOYEE_ID,

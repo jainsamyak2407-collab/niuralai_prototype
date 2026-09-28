@@ -132,7 +132,8 @@ export function EmmaButton() {
   return (
     <button type="button" onClick={toggle} aria-pressed={open} className={`flex h-10 items-center gap-2 rounded-full border px-3.5 text-sm ${open ? "border-primary bg-tint-4 text-primary-strong" : "border-line text-primary hover:bg-fill"}`}>
       <Sparkles className="size-4" aria-hidden />
-      Ask Emma
+      <span className="hidden whitespace-nowrap sm:inline">Ask Emma</span>
+      <span className="sr-only sm:hidden">Ask Emma</span>
     </button>
   );
 }
