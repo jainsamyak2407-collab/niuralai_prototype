@@ -32,8 +32,8 @@ describe("autopilot", () => {
     // Approved Sep 27, before the Sep 30 cutoff: only the Sep 15 paycheck was short (USD 100).
     expect(inst.adjustmentCents).toBe(10000);
     expect(inst.state).toBe("instruction_accepted");
-    // Completion still waits for the posted paycheck.
-    expect(c.completedAt).toBeUndefined();
+    // Complete once the carrier confirms and payroll accepts the update.
+    expect(c.completedAt).toBeTruthy();
     await ok("u_ops", "birth", { type: "ops.payrollPost", runId: "run_2026-09-30" });
     const s2 = await state("birth");
     expect(s2.ledger.filter((x) => x.runId === "run_2026-09-30").reduce((a, x) => a + x.amountCents, 0)).toBe(36600);
@@ -129,3 +129,20 @@ async function markAutoVerified(scenario: ScenarioId, caseId: string, name?: str
   s.rev += 1;
   await store.commit(s);
 }
+
+describe("completion after the paycheck posts", () => {
+  it("a posted amount that differs reopens a completed case", async () => {
+    freshStore(true);
+    await ok("u_ops", "birth", { type: "ops.preset", preset: "payroll_different_amount" });
+    const d = await ok("u_maya", "birth", { type: "case.createDraft", eventCode: "birth" });
+    let c = await caseById("birth", d.entityId!);
+    await ok("u_maya", "birth", { type: "case.updateDraft", caseId: c.id, expectedVersion: c.version, facts: { children: [{ personId: "p_child_a", firstName: "Ava", lastName: "Shah", dob: "2026-09-01", ssnStatus: "pending" }] } });
+    await markAutoVerified("birth", c.id);
+    c = await caseById("birth", c.id);
+    await ok("u_maya", "birth", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    await approveAndSend("birth", c.id);
+    expect((await caseById("birth", c.id)).completedAt).toBeTruthy();
+    await ok("u_ops", "birth", { type: "ops.payrollPost", runId: "run_2026-09-30" });
+    expect((await caseById("birth", c.id)).completedAt).toBeUndefined();
+  });
+});

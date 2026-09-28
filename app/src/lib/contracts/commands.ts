@@ -102,6 +102,7 @@ export const command = z.discriminatedUnion("type", [
     ...caseRef,
     elections: z.array(electionChoice),
     priority: z.enum(["lower_paycheck", "lower_care_cost", "provider_access"]).nullable().optional(),
+    priorities: z.array(z.enum(["lower_paycheck", "lower_care_cost", "provider_access"])).max(3).optional(),
   }),
   z.object({
     type: z.literal("case.confirmFact"),

@@ -116,14 +116,16 @@ export function milestones(s: ScenarioState, c: QleCase): Milestone[] {
     key: "pay",
     label: "Pay updated",
     state: exec.payrollDone && exec.linesOk ? "done" : payStates.includes("mismatch") ? "attention" : sched.length ? "current" : "upcoming",
-    at: exec.payrollDone ? (s.payRuns.filter((r) => s.instructions.some((i) => i.caseId === c.id && i.targetRunId === r.id)).map((r) => r.postedAt).filter(Boolean).at(-1) ?? null) : null,
+    at: exec.payrollDone ? (s.payRuns.filter((r) => s.instructions.some((i) => i.caseId === c.id && i.targetRunId === r.id)).map((r) => r.postedAt).filter(Boolean).at(-1) ?? s.instructions.filter((i) => i.caseId === c.id).map((i) => i.acceptedAt).filter(Boolean).at(-1) ?? null) : null,
     owner: "Payroll",
     explanation: payStates.includes("mismatch")
       ? "We are checking a payroll result. Your coverage is not affected."
       : exec.payrollDone && exec.linesOk
         ? payStates.every((p) => p === "verified_no_change")
           ? "No change to your regular deduction."
-          : "Your payslip shows the new deduction."
+          : payStates.every((p) => p === "posted" || p === "verified_no_change")
+            ? "Your payslip shows the new deduction."
+            : `Payroll accepted the new deduction${nextRun ? ` from the ${fmtDateLong(nextRun.payday, true)} paycheck` : ""}.`
         : nextRun
           ? `Coverage confirmed; pay update scheduled for ${fmtDateLong(nextRun.payday, true)}.`
           : "After the provider confirms coverage.",
@@ -522,6 +524,13 @@ export async function hrIntegrationsView(user: DemoUser, scenario: ScenarioId) {
     store: storeMode(),
     carriers: s.carriers,
     batches: s.batches.map((b) => batchView(s, b)),
+    pending: s.txns
+      .filter((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded)
+      .map((t) => {
+        const c = s.cases.find((x) => x.id === t.caseId)!;
+        return { id: t.id, caseId: c.id, caseNumber: c.caseNumber, approvedAt: c.approvals.filter((a) => !a.supersededAt).at(-1)?.at ?? null, summary: decodeOrder(t.order), benefit: t.order.benefit };
+      })
+      .filter((t) => s.cases.find((c) => c.id === t.caseId)?.employerId === user.employerId),
     apiTxns: s.txns.filter((t) => t.route === "api").map((t) => ({ id: t.id, caseNumber: s.cases.find((c) => c.id === t.caseId)!.caseNumber, summary: decodeOrder(t.order), delivery: t.delivery, memberResult: t.memberResult, apiReference: t.apiReference ?? null, sentAt: t.sentAt ?? null })),
     nextBatchAt: nextBatchAt(s),
     label: EDI_LABEL,

@@ -9,7 +9,7 @@ import { CommandError, type CommandResponse } from "@/components/ui/client";
 import { Money, Section, Tag } from "@/components/ui/primitives";
 import { AskEmmaButton } from "@/components/emma/EmmaDock";
 import { BENEFIT_LABEL, TIER_LABEL } from "./labels";
-import { CheckRow, OptionCards } from "./controls";
+import { CheckRow } from "./controls";
 import { cmd, saveError, useCaseCommand } from "./useCaseCommand";
 
 export interface PlanInfo {
@@ -55,7 +55,7 @@ export function OptionsForm({
   caseId,
   version,
   initial,
-  initialPriority,
+  initialPriorities,
   plans,
   current,
   people,
@@ -68,7 +68,7 @@ export function OptionsForm({
   caseId: string;
   version: number;
   initial: ElectionChoice[];
-  initialPriority: Priority | null;
+  initialPriorities: Priority[];
   plans: PlanInfo[];
   current: CurrentInfo[];
   people: PersonInfo[];
@@ -81,13 +81,13 @@ export function OptionsForm({
   const router = useRouter();
   const { run, pending } = useCaseCommand(version);
   const [choices, setChoices] = useState<Record<Benefit, ElectionChoice>>(() => Object.fromEntries(BENEFITS.map((b) => [b, initial.find((e) => e.benefit === b) ?? { benefit: b, planId: permittedPlanIds[b][0] ?? "", addPersonIds: [], removePersonIds: [], enroll: false }])) as Record<Benefit, ElectionChoice>);
-  const [priority, setPriority] = useState<Priority | null>(initialPriority);
+  const [priorities, setPriorities] = useState<Priority[]>(initialPriorities);
   const [error, setError] = useState<CommandResponse | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [going, setGoing] = useState(false);
-  const saved = useRef(JSON.stringify({ c: choices, priority, s: hasSavedElections }));
+  const saved = useRef(JSON.stringify({ c: choices, priorities, s: hasSavedElections }));
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const snapshot = JSON.stringify({ c: choices, priority, s: true });
+  const snapshot = JSON.stringify({ c: choices, priorities, s: true });
   const dirty = snapshot !== saved.current;
 
   const cur = (b: Benefit) => current.find((c) => c.benefit === b);
@@ -95,10 +95,10 @@ export function OptionsForm({
   const name = (id: string) => people.find((p) => p.id === id)?.name ?? "New child";
 
   async function save(): Promise<boolean> {
-    const snap = JSON.stringify({ c: choices, priority, s: true });
+    const snap = JSON.stringify({ c: choices, priorities, s: true });
     if (snap === saved.current) return true;
     const elections = BENEFITS.map((b) => choices[b]).filter((e) => e.planId);
-    const res = await run((v) => cmd({ type: "case.setElections", caseId, expectedVersion: v, elections, priority }));
+    const res = await run((v) => cmd({ type: "case.setElections", caseId, expectedVersion: v, elections, priority: priorities.at(-1) ?? null, priorities }));
     if (!res.ok) {
       setError(saveError(res));
       return false;
@@ -141,29 +141,61 @@ export function OptionsForm({
   const medTier = tierAfter(cur("medical"), choices.medical, people);
   const cheapest = medPlans.reduce<PlanInfo | null>((a, p) => (!a || p.employeeCents[medTier] < a.employeeCents[medTier] ? p : a), null);
   const lowestDeductible = medPlans.reduce<PlanInfo | null>((a, p) => (!a || deductible(p) < deductible(a) ? p : a), null);
-  const match = priority === "lower_paycheck" ? cheapest?.id : priority === "lower_care_cost" ? lowestDeductible?.id : null;
+  // Which medical plan each preference points to. Several preferences can be on at once.
+  const PREF_PLAN: Partial<Record<Priority, string | undefined>> = { lower_paycheck: cheapest?.id, lower_care_cost: lowestDeductible?.id };
+  const PREF_TAG: Record<Priority, string> = { lower_paycheck: "Lower paycheck deduction", lower_care_cost: "Lower cost when using care", provider_access: "Provider access" };
+  const matchesFor = (planId: string) => priorities.filter((p) => PREF_PLAN[p] === planId).map((p) => PREF_TAG[p]);
+  const planPrefs = priorities.filter((p) => PREF_PLAN[p]);
+  const split = new Set(planPrefs.map((p) => PREF_PLAN[p])).size > 1;
+  const latestPlan = planPrefs.length ? PREF_PLAN[planPrefs.at(-1)!] : undefined;
+
+  // Selecting a preference moves the medical selection to the plan it points to (latest wins).
+  function togglePriority(p: Priority) {
+    const next = priorities.includes(p) ? priorities.filter((x) => x !== p) : [...priorities, p];
+    setPriorities(next);
+    const target = [...next].reverse().map((x) => PREF_PLAN[x]).find(Boolean);
+    if (target && choices.medical.enroll && permittedPlanIds.medical.includes(target)) update("medical", { planId: target });
+  }
+  const planName = (id?: string) => medPlans.find((x) => x.id === id)?.shortName ?? "";
 
   return (
     <div className="space-y-5">
-      <Section title="What matters most to you?" description="Optional. It only highlights a plan; it never changes what you can choose. We never ask about diagnoses or medical history.">
-        <OptionCards
-          name="priority"
-          legend="Your preference"
-          cols={3}
-          value={priority ?? undefined}
-          onChange={(v) => setPriority(v)}
-          options={[
-            { value: "lower_paycheck", label: "Lower paycheck deduction", description: "Pay less from each paycheck." },
-            { value: "lower_care_cost", label: "Lower cost when using care", description: "A lower deductible and out-of-pocket maximum." },
-            { value: "provider_access", label: "Checking provider access", description: "Keep seeing the providers you use." },
-          ]}
-        />
-        {priority ? (
-          <button type="button" onClick={() => setPriority(null)} className="mt-2 text-[13px] text-primary hover:underline">
-            Clear preference
+      <Section title="What matters most to you?" description="Optional. Choose one or more. The plan that fits is selected for you; you can still pick the other. We never ask about diagnoses or medical history.">
+        <fieldset>
+          <legend className="mb-2 text-sm text-ink">Your preferences</legend>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {([
+              { value: "lower_paycheck", label: "Lower paycheck deduction", description: "Pay less from each paycheck." },
+              { value: "lower_care_cost", label: "Lower cost when using care", description: "A lower deductible and out-of-pocket maximum." },
+              { value: "provider_access", label: "Checking provider access", description: "Keep seeing the providers you use." },
+            ] as { value: Priority; label: string; description: string }[]).map((o) => {
+              const on = priorities.includes(o.value);
+              return (
+                <label key={o.value} className={`relative flex cursor-pointer items-start gap-3 rounded-[10px] border bg-surface px-4 py-3 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-primary ${on ? "border-success ring-1 ring-success" : "border-line hover:border-tint-2"}`}>
+                  <input type="checkbox" checked={on} onChange={() => togglePriority(o.value)} className="sr-only" />
+                  <span aria-hidden className={`mt-0.5 grid size-4 shrink-0 place-items-center rounded-[4px] border ${on ? "border-success bg-success" : "border-line"}`}>
+                    {on ? <Check className="size-3 text-white" strokeWidth={3} /> : null}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm text-ink">{o.label}</span>
+                    <span className="mt-0.5 block text-[13px] text-muted">{o.description}</span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+        {priorities.length ? (
+          <button type="button" onClick={() => setPriorities([])} className="mt-2 text-[13px] text-primary hover:underline">
+            Clear preferences
           </button>
         ) : null}
-        {priority === "provider_access" ? <p className="mt-2 text-[13px] text-muted">Both plans list the same illustrative network. We cannot confirm whether a provider is in network; check with the insurance provider before you choose.</p> : null}
+        {split ? (
+          <p className="mt-2 text-[13px] text-ink-2" aria-live="polite">
+            Your preferences point to different plans: {planName(PREF_PLAN.lower_paycheck)} has the lower paycheck deduction; {planName(PREF_PLAN.lower_care_cost)} has the lower deductible. We selected {planName(latestPlan)}, your latest choice. Pick the other plan if you prefer.
+          </p>
+        ) : null}
+        {priorities.includes("provider_access") ? <p className="mt-2 text-[13px] text-muted">Both plans list the same illustrative network. We cannot confirm whether a provider is in network; check with the insurance provider before you choose.</p> : null}
       </Section>
 
       {BENEFITS.map((b) => {
@@ -179,7 +211,7 @@ export function OptionsForm({
             actions={b === "medical" ? <AskEmmaButton question="Compare the two medical plans for my choices">Explain with Emma</AskEmmaButton> : null}
           >
             <div className="space-y-4">
-              <CheckRow checked={c.enroll} onChange={(v) => update(b, { enroll: v, addPersonIds: v && !c.addPersonIds.length ? defaultAdd : c.addPersonIds })} label={`Change my ${BENEFIT_LABEL[b].toLowerCase()} coverage`} description={c.enroll ? undefined : `No change: your ${BENEFIT_LABEL[b].toLowerCase()} stays as it is today.`} />
+              <CheckRow checked={c.enroll} onChange={(v) => update(b, { enroll: v, addPersonIds: v && !c.addPersonIds.length ? defaultAdd : c.addPersonIds, ...(v && b === "medical" && latestPlan ? { planId: latestPlan } : {}) })} label={`Change my ${BENEFIT_LABEL[b].toLowerCase()} coverage`} description={c.enroll ? undefined : `No change: your ${BENEFIT_LABEL[b].toLowerCase()} stays as it is today.`} />
               {c.enroll ? (
                 <>
                   <fieldset>
@@ -199,12 +231,12 @@ export function OptionsForm({
                       <legend className="mb-2 text-sm text-ink">Choose a plan</legend>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         {options.map((p) => (
-                          <PlanCard key={p.id} plan={p} tier={tier} selected={c.planId === p.id} current={now?.planId === p.id} matches={match === p.id} onSelect={() => update(b, { planId: p.id })} name={`plan-${b}`} />
+                          <PlanCard key={p.id} plan={p} tier={tier} selected={c.planId === p.id} current={now?.planId === p.id} matches={b === "medical" ? matchesFor(p.id) : []} onSelect={() => update(b, { planId: p.id })} name={`plan-${b}`} />
                         ))}
                       </div>
                     </fieldset>
                   ) : options[0] ? (
-                    <PlanCard plan={options[0]} tier={tier} selected current={now?.planId === options[0].id} matches={false} name={`plan-${b}`} />
+                    <PlanCard plan={options[0]} tier={tier} selected current={now?.planId === options[0].id} matches={[]} name={`plan-${b}`} />
                   ) : null}
                 </>
               ) : null}
@@ -239,7 +271,7 @@ export function OptionsForm({
   );
 }
 
-function PlanCard({ plan, tier, selected, current, matches, onSelect, name }: { plan: PlanInfo; tier: Tier; selected: boolean; current: boolean; matches: boolean; onSelect?: () => void; name: string }) {
+function PlanCard({ plan, tier, selected, current, matches, onSelect, name }: { plan: PlanInfo; tier: Tier; selected: boolean; current: boolean; matches: string[]; onSelect?: () => void; name: string }) {
   const body = (
     <>
       <div className="flex items-start gap-3">
@@ -253,7 +285,11 @@ function PlanCard({ plan, tier, selected, current, matches, onSelect, name }: { 
             {plan.shortName}
             <Tag>Illustrative</Tag>
             {current ? <Tag>Current plan</Tag> : null}
-            {matches ? <Tag className="bg-success-soft text-success-text">Matches your preference</Tag> : null}
+            {matches.map((m) => (
+              <Tag key={m} className="bg-success-soft text-success-text">
+                Matches: {m.toLowerCase()}
+              </Tag>
+            ))}
           </p>
           <p className="mt-2 text-lg text-ink">
             <Money cents={plan.employeeCents[tier]} />

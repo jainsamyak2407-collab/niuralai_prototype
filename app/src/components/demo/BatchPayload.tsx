@@ -10,7 +10,7 @@ import { Why } from "./sim-kit";
 type State = { kind: "loading" } | { kind: "ok"; text: string } | { kind: "missing" } | { kind: "error" };
 
 /** The batch's illustrative 834 file: line-by-line reading, raw file and download. Used by HR and the carrier. */
-export function BatchPayload({ batchId, label, tall = false }: { batchId: string; label: string; tall?: boolean }) {
+export function BatchPayload({ batchId, label, tall = false, title }: { batchId: string; label: string; tall?: boolean; title?: string }) {
   const [state, setState] = useState<State>({ kind: "loading" });
   const [view, setView] = useState<"read" | "raw">("read");
   const href = `/api/documents/edi_834?batchId=${encodeURIComponent(batchId)}`;
@@ -41,7 +41,7 @@ export function BatchPayload({ batchId, label, tall = false }: { batchId: string
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-sm font-medium text-ink">
           <FileCode2 className="size-4 text-muted" aria-hidden />
-          EDI 834 file · {batchId}
+          {title ?? `EDI 834 file · ${batchId}`}
         </p>
         {state.kind === "ok" ? (
           <div className="flex items-center gap-2">

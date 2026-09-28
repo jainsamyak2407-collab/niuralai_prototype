@@ -624,7 +624,9 @@ export function executionSummary(s: ScenarioState, c: QleCase) {
     const latest = insts[insts.length - 1];
     return { benefit: b, state: latest?.state ?? null };
   });
-  const payrollDone = payroll.every((p) => p.state === "posted" || p.state === "verified_no_change");
+  // Done once payroll has accepted the update (or posted it). A later posted amount that
+  // differs turns the instruction into a mismatch, which reopens the case.
+  const payrollDone = payroll.every((p) => p.state === "posted" || p.state === "verified_no_change" || p.state === "instruction_accepted");
   const payrollScheduled = payroll.every((p) => p.state && ["posted", "verified_no_change", "scheduled", "instruction_accepted", "approval_needed"].includes(p.state));
   const cobra = s.cobra.find((r) => r.caseId === c.id);
   const cobraOk = !cobra || ["received", "notice_tracked"].includes(cobra.state);
@@ -637,7 +639,7 @@ export function refreshCompletion(ctx: Ctx, c: QleCase) {
   const sum = executionSummary(ctx.s, c);
   if (sum.complete && !c.completedAt) {
     c.completedAt = now(ctx);
-    audit(ctx, { caseId: c.id, type: "case.completed", summary: "Case complete: every affected line has a verified carrier outcome, payroll posted or verified unchanged, and required handoffs acknowledged.", employeeSummary: "Complete. Your coverage and pay match the approved change." });
+    audit(ctx, { caseId: c.id, type: "case.completed", summary: "Case complete: every affected line has a verified carrier outcome, payroll accepted the update (or it was verified unchanged), and required handoffs acknowledged. The posted paycheck is still checked when it runs.", employeeSummary: "Complete. Your coverage and pay match the approved change." });
     metric(ctx, "case_completed", c.id);
     notify(ctx, { key: `complete:${c.id}`, userId: EMPLOYEE_ID, subject: `${c.caseNumber}: complete`, preview: `Your ${EVENT_LABEL[c.eventCode].toLowerCase()} request is complete. Coverage and pay match the approved change.`, caseId: c.id, eventType: "case_completed" });
     notify(ctx, { key: `complete:${c.id}`, userId: HR_ID, subject: `${c.caseNumber}: complete`, preview: "Carrier, payroll and handoffs verified.", caseId: c.id, eventType: "case_completed" });

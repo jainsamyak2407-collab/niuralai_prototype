@@ -37,16 +37,16 @@ demo operator). Only the chosen scenarios go back to the start.
    verified (each fact with its document page and quote, each rule check with its rule id) and
    what is left for him to check. He approves: one case, or **Approve all ready (N)** in the queue
    for every case at 100% with nothing open.
-3. The EDI 834 batch runs **every night at 10:00 PM ET**. For the demo, Daniel clicks **Run
-   batch now** (on the case or in the queue). **View 834 file** (case → Delivery, or
+3. As soon as Daniel approves, **Integrations → Next batch · EDI 834** lists the waiting records
+   and shows the generated 834 file (not sent yet). The batch runs **every night at 10:00 PM ET**.
+   For the demo, Daniel clicks **Run batch now** there (or on the case, or in the queue). **View 834 file** (case → Delivery, or
    Integrations) opens the exact file the carrier received, line by line or raw, with a download.
    The carrier side (operator → Carrier inbox) shows the same file.
 4. With autopilot on, the simulated carrier receives and accepts the file at once. Once the carrier
    confirms, the pay update is authorized automatically (HR already approved it with the case) and
-   sent to payroll: status **Enrolled · pay update scheduled** (divorce: **Removal confirmed · pay
-   update scheduled**). Nothing is approved without HR.
-5. The case turns **Complete** once the paycheck with the new deduction posts: operator →
-   Payroll → Post the run (or Advance to next payday).
+   payroll accepts it. Every step shows done and the case is **Complete**. Nothing is approved
+   without HR. When the paycheck later posts, it is checked again; a different amount reopens the
+   case with a payroll task.
 
 ## Wrong date or name on the form? Let the document fix it
 If Maya types a wrong date (say Sep 23) and uploads the right document (Sep 15), the AI flags the
@@ -55,6 +55,13 @@ goes to **100%**. Daniel's AI review shows "form corrected from September 23, 20
 her own date, the score stays below 100% and the difference is listed for Daniel to check.
 The same works for a child's name: type "Eva Shah", upload the record naming "Ava Shah", and the
 AI flags it; **Correct my form to the document** fixes the name and lifts the score to 100%.
+
+## Preferences (Birth and Loss)
+On the benefit changes step Maya can pick one or more preferences. Each plan shows which
+preference it matches ("Matches: lower paycheck deduction" on Aetna Standard, "Matches: lower
+cost when using care" on Aetna Plus), and the selected plan moves to the one her latest choice
+points to. With both on, a note explains the trade-off. Divorce keeps the current plans (Nexa's
+rule), so it has no plan choice.
 
 ## Daniel's queue
 Life events shows an **AI match** column, **Approve all ready (N)** and **Run batch now (N)**. Cases below 100% (for example Chris Wong, 60%, date difference) stay for review.
@@ -69,8 +76,8 @@ one records the decision only.
 3. **Daniel** (account menu → Switch role): Life events → the case → read the AI review →
    **Approve this version** (or Approve all ready in the queue) → **Run batch now** → **View 834
    file** to show the file the carrier received.
-4. Status: **Enrolled · pay update scheduled**. Operator → Payroll → post the Sep 30 run: USD 366.
-   Maya's tracker shows **Complete**.
+4. Maya's tracker shows every step done and **Complete**. Optional: operator → Payroll → post
+   the Sep 30 run (USD 366) to show the payslip.
 
 Divorce (Divorce scenario): Remove from Nexa → final Sep 15, Arjun, no child order → upload the
 happy-path summary → Submit. Daniel approves and runs the batch; the COBRA referral is sent and

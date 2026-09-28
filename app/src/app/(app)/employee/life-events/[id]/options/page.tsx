@@ -169,7 +169,7 @@ export default async function OptionsPage({ params }: { params: Promise<{ id: st
         caseId={id}
         version={v.case.version}
         initial={initial}
-        initialPriority={v.case.preferences.priority ?? null}
+        initialPriorities={v.case.preferences.priorities ?? (v.case.preferences.priority ? [v.case.preferences.priority] : [])}
         plans={v.plans}
         current={current}
         people={people}

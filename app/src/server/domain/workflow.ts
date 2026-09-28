@@ -185,7 +185,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
         if (bad.length) throw new DomainError(422, "person_not_permitted", "That person cannot be changed through this request.", undefined, { [e.benefit]: "Only the listed people can be added or removed." });
       }
       c.elections = cmd.elections;
-      c.preferences = { priority: cmd.priority ?? null };
+      const priorities = [...new Set(cmd.priorities ?? (cmd.priority ? [cmd.priority] : []))];
+      c.preferences = { priority: priorities.at(-1) ?? null, priorities };
       touch(ctx, c);
       reevaluate(ctx, c);
       return ok(c, "Benefit choices saved.");
@@ -472,7 +473,7 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       metric(ctx, "approved", c.id);
       notify(ctx, { key: `approved:${c.id}:${approval.id}`, userId: EMPLOYEE_ID, subject: `${c.caseNumber}: approved`, preview: auto ? "Every check passed, so your request was approved automatically. We'll confirm the result with the insurance provider." : "HR approved your request. We'll send it to the insurance provider and confirm the result.", caseId: c.id, eventType: "decision" });
       if (auto) notify(ctx, { key: `autoapproved:${c.id}`, userId: HR_ID, subject: `${c.caseNumber}: approved automatically`, preview: "Straight-through: every check passed and the document matched 100%. Open the case to review or correct.", caseId: c.id, eventType: "decision" });
-      return ok(c, "Approved. Carrier changes queued; coverage is not confirmed until the carrier record matches.");
+      return ok(c, "Approved. The change is in the next EDI 834 batch file (Integrations → Next batch). Coverage is confirmed when the carrier's record matches.");
     }
     case "hr.bulkApprove": {
       const approved: string[] = [];
@@ -830,7 +831,8 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       if (inst.adjustmentCents !== 0) setup.oneTime.push({ runId: inst.targetRunId, amountCents: inst.adjustmentCents, instructionId: inst.id });
       inst.state = "instruction_accepted";
       inst.acceptedAt = now(ctx);
-      audit(ctx, { caseId: inst.caseId, type: "payroll.instruction_accepted", summary: `Payroll simulator accepted ${inst.id}. Accepted is not posted.` });
+      audit(ctx, { caseId: inst.caseId, type: "payroll.instruction_accepted", summary: `Payroll simulator accepted ${inst.id}. The posted paycheck is checked when the run posts.` });
+      refreshCompletion(ctx, findCase(s, inst.caseId));
       return { ok: true, message: "Instruction accepted. It posts when the target run posts." };
     }
     case "ops.payrollPost": {

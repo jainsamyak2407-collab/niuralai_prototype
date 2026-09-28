@@ -145,6 +145,7 @@ export interface ElectionChoice {
 
 export interface Preferences {
   priority?: "lower_paycheck" | "lower_care_cost" | "provider_access" | null;
+  priorities?: ("lower_paycheck" | "lower_care_cost" | "provider_access")[]; // several can apply; latest last
 }
 
 export type CheckResult = "passed" | "needs_information" | "needs_review" | "not_applicable";

@@ -1,4 +1,7 @@
 import { Edi834Button } from "@/components/hr/Edi834Button";
+import { SendBatchButton } from "@/components/hr/ExecutionActions";
+import { BatchPayload } from "@/components/demo/BatchPayload";
+import { fmtDateTime } from "@/lib/dates";
 import { Download, FileStack } from "lucide-react";
 import { requireSession } from "@/server/guard";
 import { hrIntegrationsView } from "@/server/views";
@@ -48,7 +51,7 @@ export default async function AdminIntegrationsPage() {
           { label: "Benefits admin", href: "/admin" },
           { label: "Integrations" },
         ]}
-        description="Read-only view of carrier routes, files and API calls. Carrier, payroll and COBRA systems are simulated."
+        description="Carrier routes, the next batch file and everything sent. Carrier, payroll and COBRA systems are simulated."
       />
       <Banner className="mb-4" title={v.label}>
         Files follow the 834 shape for demonstration only and are not certified
@@ -58,6 +61,53 @@ export default async function AdminIntegrationsPage() {
       </Banner>
 
       <div className="flex flex-col gap-4">
+        <Section
+          title="Next batch · EDI 834"
+          description={`Generated as soon as HR approves a change. Runs automatically every night at 10:00 PM ET (next: ${fmtDateTime(v.nextBatchAt)}). Nothing reaches the carrier until the batch runs.`}
+          actions={<SendBatchButton records={v.pending.length} />}
+          bodyClassName=""
+        >
+          {v.pending.length === 0 ? (
+            <EmptyState icon={<FileStack />} title="No changes waiting">
+              When HR approves a medical change, its 834 record appears here and the file for the next batch is generated.
+            </EmptyState>
+          ) : (
+            <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:divide-x lg:divide-divider">
+              <Table label="Records waiting for the next batch">
+                <THead>
+                  <tr>
+                    <Th>Case</Th>
+                    <Th>Record</Th>
+                    <Th>Approved</Th>
+                  </tr>
+                </THead>
+                <tbody>
+                  {v.pending.map((t) => (
+                    <tr key={t.id}>
+                      <Td className="whitespace-nowrap">
+                        <a href={`/admin/qle/${t.caseId}`} className="text-primary hover:underline">
+                          {t.caseNumber}
+                        </a>
+                      </Td>
+                      <Td>
+                        <p>
+                          {t.summary.member} · {BENEFIT[t.benefit]}
+                        </p>
+                        <p className="text-xs text-muted">
+                          {t.summary.action} · {t.summary.plan} {t.summary.level} · {t.summary.date}
+                        </p>
+                      </Td>
+                      <Td className="whitespace-nowrap">{t.approvedAt ? <DateText time={t.approvedAt} /> : "—"}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <div className="border-t border-divider p-4 lg:border-t-0">
+                <BatchPayload batchId="pending" title={`Generated file · ${v.pending.length} record${v.pending.length === 1 ? "" : "s"} · not sent yet`} label="Illustrative 834 — not carrier-certified. Draft for the next batch; control numbers are final when the batch runs" />
+              </div>
+            </div>
+          )}
+        </Section>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
           <Section title="Carriers and routes" bodyClassName="">
             <Table label="Carriers">

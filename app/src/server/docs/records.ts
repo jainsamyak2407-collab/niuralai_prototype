@@ -1,4 +1,4 @@
-import type { DemoUser, QleCase, ScenarioId, ScenarioState } from "@/lib/contracts/domain";
+import type { CarrierBatch, DemoUser, QleCase, ScenarioId, ScenarioState } from "@/lib/contracts/domain";
 import { SYNTHETIC_LABEL } from "@/lib/contracts/documents";
 import { fmtDate, fmtDateTime } from "@/lib/dates";
 import { fmtMoney } from "@/lib/money";
@@ -214,6 +214,14 @@ export async function payrollStatement(user: DemoUser, scenario: ScenarioId, cas
 
 function batchFor(s: ScenarioState, user: DemoUser, batchId: string | null) {
   if (!["hr_admin", "carrier_operator", "demo_operator"].includes(user.role)) forbidden("Only HR and the carrier or demo operator can open 834 files.");
+  if (batchId === "pending") {
+    // The next batch file, generated from approved changes waiting for the nightly run. Not sent.
+    if (user.role !== "hr_admin" && user.role !== "demo_operator") forbidden("The carrier sees a file only once it is sent.");
+    const txns = s.txns.filter((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded && (user.role !== "hr_admin" || s.cases.find((c) => c.id === t.caseId)?.employerId === user.employerId));
+    if (!txns.length) notFound("No approved changes are waiting for the next batch.");
+    const batch = { id: "next_batch", controlNumber: String(100 + (s.counters.batch ?? 0) + 1), sentAt: s.clock.businessNow, queuedAt: s.clock.businessNow, transport: "pending", fileValidation: "pending", recordCount: txns.length, payloadHash: "", txnIds: txns.map((t) => t.id) } as unknown as CarrierBatch;
+    return { batch, txns };
+  }
   const batch = batchId ? s.batches.find((b) => b.id === batchId) : s.batches.at(-1);
   if (!batch) notFound(batchId ? "We could not find that batch." : "No 834 batch has been sent yet.");
   const txns = batch.txnIds.map((id) => s.txns.find((t) => t.id === id)).filter((t) => !!t);
@@ -225,7 +233,8 @@ export async function edi834(user: DemoUser, scenario: ScenarioId, batchId: stri
   const s = await loadState(scenario);
   const { batch, txns } = batchFor(s, user, batchId);
   const payload = build834(batch, txns.map((t) => t.order), insReasons(s.cases));
-  const text = `${EDI_LABEL}. ${SYNTHETIC_LABEL}. This label line is not part of the payload; payload sha256 ${sha256(payload)}.\n${payload}\n`;
+  const draft = batchId === "pending" ? " DRAFT: generated for the next batch, not sent yet." : "";
+  const text = `${EDI_LABEL}. ${SYNTHETIC_LABEL}.${draft} This label line is not part of the payload; payload sha256 ${sha256(payload)}.\n${payload}\n`;
   return { bytes: new TextEncoder().encode(text), contentType: "text/plain; charset=utf-8", fileName: `illustrative-834-${batch.id}.edi` };
 }
 
