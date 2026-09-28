@@ -416,7 +416,7 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       expectVersion(c, cmd.expectedVersion);
       const k = c.evaluation?.checks.find((x) => x.id === cmd.checkId);
       if (!k) throw new DomainError(404, "check_not_found", "Check not found.");
-      if (["intake", "divorce_final", "birth_date", "evidence_conflict"].includes(k.id)) {
+      if (["intake", "divorce_final", "birth_date", "evidence_conflict", "evidence_names"].includes(k.id)) {
         throw new DomainError(422, "not_overridable", "This check needs the missing fact itself. A generic override cannot resolve it.", "Request the information from the employee.");
       }
       c.checkResolutions[k.id] = { actor: ctx.actor.id, at: now(ctx), outcome: cmd.outcome, reason: cmd.reason, source: cmd.source, reviewer: cmd.reviewer };

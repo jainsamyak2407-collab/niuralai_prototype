@@ -1,8 +1,8 @@
 import { Download, FileText } from "lucide-react";
-import { FIXTURES, SYNTHETIC_LABEL, type DocumentKind } from "@/lib/contracts/documents";
+import { DEMO_SET, FIXTURES, SYNTHETIC_LABEL, type DocumentKind } from "@/lib/contracts/documents";
 import { fmtDate } from "@/lib/dates";
 import { buttonClass } from "@/components/ui/button";
-import { Banner, PageHeader, Section, Table, Tag, Td, Th, THead } from "@/components/ui/primitives";
+import { Banner, PageHeader, Section, StatusPill, Table, Tag, Td, Th, THead } from "@/components/ui/primitives";
 import { ScenarioSwitch } from "@/components/demo/ScenarioSwitch";
 import { SimTag } from "@/components/demo/SimFrame";
 import { requireSession } from "@/server/guard";
@@ -67,6 +67,39 @@ export default async function FixturesPage() {
                   </Td>
                 </tr>
               ))}
+            </tbody>
+          </Table>
+        </Section>
+
+        <Section title="Demo set: one happy path and one problem document per flow" description="Maya can download these herself on the Documents step of her request. The problem documents are ones the reading step surfaces for her and for HR." bodyClassName="">
+          <Table label="Demo set">
+            <THead>
+              <tr>
+                <Th>Flow</Th>
+                <Th>Document</Th>
+                <Th>Type</Th>
+                <Th>What happens</Th>
+                <Th>File</Th>
+              </tr>
+            </THead>
+            <tbody>
+              {(Object.keys(DEMO_SET) as (keyof typeof DEMO_SET)[]).flatMap((flow) =>
+                DEMO_SET[flow].map((d) => (
+                  <tr key={d.fixtureId}>
+                    <Td className="capitalize">{flow === "loss" ? "Loss of other coverage" : flow}</Td>
+                    <Td>{d.label}</Td>
+                    <Td>
+                      <StatusPill tone={d.kind === "happy" ? "green" : "amber"}>{d.kind === "happy" ? "Happy path" : "Problem document"}</StatusPill>
+                    </Td>
+                    <Td className="max-w-[420px] text-ink-2">{d.whatHappens}</Td>
+                    <Td>
+                      <a href={`/api/fixtures/${d.fixtureId}`} download className="inline-flex items-center gap-1 text-primary hover:underline">
+                        <Download className="size-4" aria-hidden /> Download
+                      </a>
+                    </Td>
+                  </tr>
+                )),
+              )}
             </tbody>
           </Table>
         </Section>

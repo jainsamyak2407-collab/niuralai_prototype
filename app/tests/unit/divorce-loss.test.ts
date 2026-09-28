@@ -107,7 +107,7 @@ describe("loss of other coverage", () => {
     expect(c.evaluation!.proposedLines.filter((l) => l.action === "add").every((l) => l.startDate === "2026-11-01")).toBe(true);
     expect(c.evaluation!.totalBeforeCents).toBe(16600);
     expect(c.evaluation!.totalAfterCents).toBe(33200);
-    const ev = await attachEvidence("loss", c.id);
+    const ev = await attachEvidence("loss", c.id, [{ field: "personName", label: "Person named", value: "Arjun Shah" }]);
     c = await caseById("loss", c.id);
     await ok("u_maya", "loss", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
     c = await caseById("loss", c.id);
@@ -126,6 +126,31 @@ describe("loss of other coverage", () => {
     expect(insts.every((i) => i.adjustmentCents === 0)).toBe(true);
     expect(s.payRuns.find((r) => r.id === insts[0].targetRunId)!.payday).toBe("2026-11-13");
     expect(s.cobra).toHaveLength(0);
+  });
+
+  it("a notice that does not name Arjun blocks approval until a named notice arrives through HR's request", async () => {
+    let c = await draft({ lostCoveragePersonIds: ["p_arjun"], lossReason: "employment_ended", lastWorkday: "2026-10-12", coverageEndDate: "2026-10-31" });
+    const bad = await attachEvidence("loss", c.id, [{ field: "coverageEndDate", label: "Date other coverage ends", value: "2026-10-31" }]);
+    c = await caseById("loss", c.id);
+    expect(c.evaluation!.checks.find((k) => k.id === "evidence_names")).toBeUndefined(); // evaluation refreshes on the next change
+    await ok("u_maya", "loss", { type: "case.submit", caseId: c.id, expectedVersion: c.version, attestation: true });
+    c = await caseById("loss", c.id);
+    await ok("u_daniel", "loss", { type: "hr.reviewEvidence", caseId: c.id, expectedVersion: c.version, fileId: bad, outcome: "accept" });
+    c = await caseById("loss", c.id);
+    const names = c.evaluation!.checks.find((k) => k.id === "evidence_names")!;
+    expect(names.result).toBe("needs_information");
+    expect(names.reason).toContain("does not name Arjun Shah");
+    const blocked = await run("u_daniel", "loss", { type: "hr.approve", caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo });
+    expect(blocked.status).toBe(422);
+    const req = await ok("u_daniel", "loss", { type: "hr.requestInformation", caseId: c.id, expectedVersion: c.version, reason: "The notice does not name Arjun", items: ["A notice that names Arjun Shah and the coverage end date"], dueDate: "2026-11-05", employeeMessage: "Please upload a notice from Harbor Logistics that names Arjun." });
+    const good = await attachEvidence("loss", c.id, [{ field: "personName", label: "Person named", value: "Arjun Shah" }]);
+    c = await caseById("loss", c.id);
+    await ok("u_maya", "loss", { type: "case.respond", caseId: c.id, expectedVersion: c.version, taskId: req.taskIds![0], message: "Uploaded the notice that names Arjun." });
+    c = await caseById("loss", c.id);
+    await ok("u_daniel", "loss", { type: "hr.reviewEvidence", caseId: c.id, expectedVersion: c.version, fileId: good, outcome: "accept" });
+    c = await caseById("loss", c.id);
+    expect(c.evaluation!.checks.find((k) => k.id === "evidence_names")!.result).toBe("passed");
+    await ok("u_daniel", "loss", { type: "hr.approve", caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo });
   });
 
   it("first request on Nov 2 returns Dec 1 and flags a possible gap", async () => {

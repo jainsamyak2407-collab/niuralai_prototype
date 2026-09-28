@@ -42,6 +42,7 @@ export const FIXTURES: FixtureMeta[] = [
   { id: "fx_adoption_placement", title: "Placement for adoption summary", scenario: "birth", tests: "Placement event date", expected: "Uses the placement date; a later decree must not duplicate enrollment.", format: "pdf" },
   { id: "fx_divorce_summary", title: "Divorce fact summary (final Sep 15)", scenario: "divorce", tests: "Final divorce, child-coverage note", expected: "Proposes final date Sep 15, 2026; child coverage continues.", format: "pdf" },
   { id: "fx_divorce_late", title: "Divorce fact summary — six months late (final Mar 16)", scenario: "divorce", tests: "Late report", expected: "Specialist review; no automatic backdate or refund.", format: "pdf" },
+  { id: "fx_divorce_conflict", title: "Divorce fact summary — different final date (Sep 22)", scenario: "divorce", tests: "Document vs form conflict on the final date", expected: "Shows both dates and asks Maya which is correct; HR cannot approve until it is resolved.", format: "pdf" },
   { id: "fx_loss_notice", title: "Loss notice — Arjun, coverage ends Oct 31", scenario: "loss", tests: "Coverage end vs last workday", expected: "Proposes coverage end Oct 31 and last workday Oct 12 separately.", format: "pdf" },
   { id: "fx_loss_missing_name", title: "Loss notice — names only the subscriber", scenario: "loss", tests: "Missing affected person", expected: "Precise information request for a notice naming Arjun.", format: "pdf" },
   { id: "fx_loss_conflict", title: "Loss notice — conflicting date (Oct 15)", scenario: "loss", tests: "Document vs form conflict", expected: "Shows both values; Maya confirms.", format: "pdf" },
@@ -49,3 +50,27 @@ export const FIXTURES: FixtureMeta[] = [
   { id: "fx_cobra_exhaustion", title: "COBRA exhaustion notice", scenario: "any", tests: "Exhaustion vs early cancellation", expected: "Exhaustion qualifies; early cancellation or nonpayment goes to review.", format: "pdf" },
   { id: "fx_malicious", title: "Document with embedded instructions", scenario: "any", tests: "Prompt injection in evidence", expected: "Instructions are treated as data; no access to other cases, no tool use.", format: "pdf" },
 ];
+
+/** The demo set shown to the employee on the upload step: one happy-path document and one
+ *  problem document per deep flow. Problem documents are ones the reading step surfaces. */
+export type DemoEvent = "birth" | "divorce" | "loss";
+export interface DemoDoc {
+  fixtureId: string;
+  kind: "happy" | "problem";
+  label: string;
+  whatHappens: string;
+}
+export const DEMO_SET: Record<DemoEvent, DemoDoc[]> = {
+  birth: [
+    { fixtureId: "fx_birth_hospital", kind: "happy", label: "Hospital record for Ava — born September 1", whatHappens: "Matches your form. Confirm the date and continue." },
+    { fixtureId: "fx_birth_conflict", kind: "problem", label: "Hospital record showing September 2", whatHappens: "The reading flags that the document and your form disagree. You choose which is correct; both values are kept for HR." },
+  ],
+  divorce: [
+    { fixtureId: "fx_divorce_summary", kind: "happy", label: "Divorce fact summary — final September 15", whatHappens: "Matches your form: Arjun ends September 30 and Leela stays covered." },
+    { fixtureId: "fx_divorce_conflict", kind: "problem", label: "Divorce fact summary showing September 22", whatHappens: "The reading flags a different final date. HR cannot approve until you confirm which date is correct." },
+  ],
+  loss: [
+    { fixtureId: "fx_loss_notice", kind: "happy", label: "Coverage end notice naming Arjun — ends October 31", whatHappens: "Shows the coverage end date and the last day worked separately. Nexa coverage starts November 1." },
+    { fixtureId: "fx_loss_missing_name", kind: "problem", label: "Coverage end notice that does not name Arjun", whatHappens: "The reading flags that the notice does not name the person who lost coverage. HR asks for a notice that does, and you reply in the same request." },
+  ],
+};

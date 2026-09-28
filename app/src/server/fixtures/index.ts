@@ -166,6 +166,29 @@ const SPECS: Record<string, FixtureSpec> = {
       sources: [src("eventDate", "Divorce became final March 16, 2026"), src("personName", "Parties Maya Shah and Arjun Shah"), src("personName", "Leela Shah stays covered under Maya Shah's plan.")],
     },
   },
+  fx_divorce_conflict: {
+    issuer: "Lakeside Family Mediation (fictional)",
+    docTitle: "Divorce fact summary for benefits",
+    subtitle: "Synthetic fact summary. This is not a court decree or judgment.",
+    rows: [
+      ["Parties", "Maya Shah and Arjun Shah"],
+      ["Divorce became final", "September 22, 2026"],
+      ["Child", "Leela Shah"],
+      ["Child coverage note", "Leela Shah stays covered under Maya Shah's plan."],
+      ["Summary reference", "LFM-DEMO-0922 (synthetic)"],
+    ],
+    note: "Prepared for a benefits update only. It does not contain the decree text, addresses or financial terms.",
+    facts: {
+      ...base,
+      documentType: "Divorce fact summary",
+      people: [
+        { name: "Arjun Shah", role: "former spouse" },
+        { name: "Leela Shah", role: "child (stays covered)" },
+      ],
+      eventDate: "2026-09-22",
+      sources: [src("eventDate", "Divorce became final September 22, 2026"), src("personName", "Parties Maya Shah and Arjun Shah"), src("personName", "Leela Shah stays covered under Maya Shah's plan.")],
+    },
+  },
   fx_loss_notice: {
     issuer: HARBOR,
     docTitle: "Notice: end of group health coverage",

@@ -6,6 +6,7 @@ import { Banner, Card, DateText, EmptyState, LabelValue, Money, PageHeader, Sect
 import { ForecastBlock } from "@/components/employee/CostSummary";
 import { EvidenceList } from "@/components/employee/EvidenceList";
 import { EvidenceUploader } from "@/components/employee/EvidenceUploader";
+import { DemoDocuments } from "@/components/employee/DemoDocuments";
 import { BENEFIT_LABEL, COVERAGE_STATE, EVIDENCE_STATUS, LINE_ACTION, PAYROLL_STATE, WIZARD_STEPS } from "@/components/employee/labels";
 import { InfoReply, ReceivedBanner, UrgentSupport, WithdrawAction } from "@/components/employee/TrackerActions";
 import { loadEmployeeCase } from "@/components/employee/server";
@@ -140,7 +141,7 @@ export default async function CaseTrackerPage({ params }: { params: Promise<{ id
                         <p className="text-[13px] text-muted">Why: {r.reason}</p>
                         {files.length ? <EvidenceList caseId={id} version={c.version} files={files} /> : null}
                         {r.status === "open" ? (
-                          <InfoReply caseId={id} version={c.version} taskId={r.id} uploader={<EvidenceUploader caseId={id} taskId={r.id} compact />} />
+                          <InfoReply caseId={id} version={c.version} taskId={r.id} uploader={<><EvidenceUploader caseId={id} taskId={r.id} compact /><DemoDocuments eventCode={c.eventCode} only="happy" /></>} />
                         ) : r.response ? (
                           <p className="rounded-[8px] bg-fill px-3 py-2 text-ink-2">
                             You replied {fmtDateTime(r.response.at)}: “{r.response.message}”

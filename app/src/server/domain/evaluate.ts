@@ -309,8 +309,8 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
         "Document and form agree",
         open.length ? "needs_information" : "passed",
         open.length
-          ? open.map((p) => `The document shows ${p.value}; the form shows ${p.conflictWith!.formValue}.`).join(" ")
-          : conflicts.map((p) => `Confirmed ${p.confirmed!.value} (${p.confirmed!.choice === "document" ? "document value" : p.confirmed!.choice === "form" ? "form value" : "entered value"}); document showed ${p.value}, form showed ${p.conflictWith!.formValue}. Both kept.`).join(" "),
+          ? open.map((p) => `The document shows ${dv(p.value)}; the form shows ${dv(p.conflictWith!.formValue)}.`).join(" ")
+          : conflicts.map((p) => `Confirmed ${dv(p.confirmed!.value)} (${p.confirmed!.choice === "document" ? "document value" : p.confirmed!.choice === "form" ? "form value" : "entered value"}); document showed ${dv(p.value)}, form showed ${dv(p.conflictWith!.formValue)}. Both kept.`).join(" "),
         "R-EVID",
         { conflicts: conflicts.length },
       ),
@@ -496,6 +496,25 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
         { waiverOnFile: waiver },
       ),
     );
+    // The accepted proof must name each person who lost coverage (read by AI or fixture parsing).
+    const readFiles = files.filter((e) => (e.readMode === "model" || e.readMode === "fixture_hash") && e.status !== "unreadable");
+    const lostPeople = (f.lostCoveragePersonIds ?? []).map((id) => personName(s, id));
+    if (readFiles.length && lostPeople.length) {
+      const named = (who: string) => readFiles.some((e) => e.proposedFacts.some((p) => p.field === "personName" && p.value.toLowerCase().includes(who.toLowerCase())));
+      const missingNames = lostPeople.filter((who) => !named(who));
+      checks.push(
+        check(
+          "evidence_names",
+          "Proof names the person who lost coverage",
+          missingNames.length ? "needs_information" : "passed",
+          missingNames.length
+            ? `The notice does not name ${missingNames.join(" or ")}. Ask for a notice or letter that names the person who lost coverage and the date it ends. This is a missing fact, not a finding against the employee.`
+            : `The uploaded proof names ${lostPeople.join(" and ")}.`,
+          "R-LOSS-QUAL",
+          { files: readFiles.length, missing: missingNames.length },
+        ),
+      );
+    }
     if (f.otherCoverageRemains) {
       checks.push(check("other_coverage", "Other coverage remains", "needs_review", "Another coverage remains. HR evaluates the applicable rule; no automatic denial.", "R-LOSS-QUAL", {}));
     }
@@ -614,6 +633,11 @@ export function evaluateCase(s: ScenarioState, c: QleCase): Evaluation {
     assistedReview: assisted,
     ruleSnapshot: [...rules].map(ruleRef),
   };
+}
+
+/** Human date for ISO values inside check text; other values pass through. */
+function dv(v: string): string {
+  return v.split(", ").map((x) => (isValidDate(x) ? fmtDateLong(x, true) : x)).join(" and ");
 }
 
 export function blockingOpen(ev: Evaluation): RuleCheck[] {

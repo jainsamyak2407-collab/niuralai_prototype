@@ -4,6 +4,7 @@ import { Section } from "@/components/ui/primitives";
 import { EvidenceList } from "@/components/employee/EvidenceList";
 import { EvidencePending } from "@/components/employee/EvidencePending";
 import { EvidenceUploader } from "@/components/employee/EvidenceUploader";
+import { DemoDocuments } from "@/components/employee/DemoDocuments";
 import { WizardHeader } from "@/components/employee/WizardHeader";
 import { loadWizardCase } from "@/components/employee/server";
 
@@ -26,7 +27,7 @@ export default async function EvidencePage({ params }: { params: Promise<{ id: s
 
       <Section title="Upload a document" description={WHAT[v.case.eventCode] ?? "Any document that shows what changed and when. HR will tell you if something else is needed."}>
         <EvidenceUploader caseId={id} />
-        <p className="mt-3 text-xs text-muted">Using the demo? Sample synthetic files are available from the demo operator. We read the file&apos;s contents, not its name.</p>
+        <DemoDocuments eventCode={v.case.eventCode} />
       </Section>
 
       <Section title="Your documents" description={check ? check.reason : undefined}>

@@ -160,7 +160,7 @@ export function readNoteFor(r: ReadResult, c: QleCase, facts: ProposedFact[]): s
   const u = new Set(x.uncertainFields);
   if (u.has("embedded_instructions")) parts.push("The document contains text that looks like instructions. It was treated as data only and changed nothing.");
   if (u.has("personName") || (LOSS_EVENTS.includes(c.eventCode) && !x.people.length)) parts.push("The document does not name the person who lost coverage. HR may ask for a notice that names them.");
-  if (u.has("eventDate") && !x.eventDate) parts.push("The document does not show one clear event date.");
+  if (u.has("eventDate") && !x.eventDate && !LOSS_EVENTS.includes(c.eventCode)) parts.push("The document does not show one clear event date.");
   if (!facts.some((f) => f.field !== "documentType")) parts.push("No dates or names were found to confirm. HR will read this document.");
   if (facts.some((f) => f.conflictWith)) {
     const f = facts.find((y) => y.conflictWith)!;
