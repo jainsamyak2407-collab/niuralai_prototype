@@ -30,8 +30,10 @@ that scenario's synthetic records change; earlier revisions stay in storage hist
 1. **Maya**: Benefits → Report a life event → Family changes → Birth. Add Ava Shah, born
    2026-09-01 (SSN not issued yet is fine). The deadline appears early ("You can submit this
    request by October 1, 2026…").
-2. Documents: upload `fx_birth_hospital` (download it from /demo/fixtures as the demo operator).
-   Confirm the proposed date of birth. Benefit changes: medical only, Aetna Standard; see
+2. Documents: the step has a **Demo documents** panel. To show the AI catching a problem,
+   download "Hospital record showing September 2", upload it, and see the conflict with the form;
+   choose which date is correct (both are kept). Or download the happy-path record (Sep 1) and
+   confirm the proposed date of birth. Benefit changes: medical only, Aetna Standard; see
    USD 150 → 250 and the labeled catch-up forecast. Review → attest → Submit. Receipt shows the
    case number and received time.
 3. **Daniel** (second window): Life events → the case. Checks show sources and rule versions.
@@ -68,6 +70,15 @@ Carrier next-month start · Carrier rejects one record (use twins) · Transport 
 (HR must record a status inquiry before any resend) · Payroll posts a different amount
 (coverage stays confirmed, payroll mismatch task) · Dental record fails (medical still
 completes). Presets change the next simulated response only; they never complete a case.
+
+## Demo documents (Maya can download them on the Documents step)
+| Flow | Happy path | Problem document — what the reading surfaces |
+|---|---|---|
+| Birth | Hospital record, Ava born Sep 1 | Record says Sep 2 → date conflict; Maya picks which is correct |
+| Divorce | Fact summary, final Sep 15 | Summary says Sep 22 → date conflict; HR cannot approve until resolved |
+| Loss | Notice naming Arjun, ends Oct 31 | Notice does not name Arjun → blocking check; HR requests a named notice; Maya replies with the happy-path file |
+
+Posting a future pay run in the simulator moves the business clock to that payday first.
 
 ## Fixtures
 /demo/fixtures lists every synthetic file and what it tests. Every file carries

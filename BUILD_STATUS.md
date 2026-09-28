@@ -1,6 +1,6 @@
 # BUILD_STATUS
 
-Last update: all phases built and integrated; live verification in progress (2026-09-28 session).
+Last update: all phases built, live-verified and fixed (2026-09-28 session).
 Resume: read GPT.md, docs/spec/QLE-Feature-Specification-v3.md, docs/CONTRACT.md, then this file.
 Live: https://niuralai-prototype.vercel.app (deployed from `main`, Vercel root `app/`).
 
@@ -47,7 +47,13 @@ fallback (the app refuses to run without Supabase credentials; tests use an in-m
   employee wizard to submit, HR case actions, simulator stages, COBRA, reset isolation.
 - Backend delegate: real model evidence reading and Emma answers verified; file-type
   rejections; role checks on all document kinds; fallbacks without a key.
-- Live three-journey click-through: in progress (niural-verifier).
+- Live click-through on https://niuralai-prototype.vercel.app by niural-verifier (real clicks,
+  separate role sessions): Birth with wrong-date repair PASS (Oct 15 USD 466.00, Oct 30
+  USD 266.00); Divorce with COBRA PASS (Oct 15 USD 284.00, Leela kept, no private data in
+  Maya's HTML or API); Loss PASS (Nov 13 USD 332.00, no catch-up, "Confirmed from November 1").
+  `tests/e2e/smoke.mjs` permission checks 19/19. Concurrent stale edit returned 409.
+- Real model checks: problem documents flagged by AI reading (birth date conflict, divorce
+  final-date conflict, loss notice without Arjun's name → blocking check).
 
 ## Simulated (labeled in the UI)
 Identity provider, carrier transport and responses, payroll runs, COBRA administrator, email.
@@ -61,5 +67,15 @@ Identity provider, carrier transport and responses, payroll runs, COBRA administ
   route (direct-to-storage upload would fix it). No malware scanning (stated in the UI).
 - Emma rate budget is per server instance.
 
+## Fixed after live verification
+Evidence upload failing after a reset (storage path reuse); Emma refusing to explain on-page
+numbers; HR provider-issue banner; roster name for a new child; dependent tier on the carrier
+roster; pay runs posting ahead of the business clock; future-changes table column; initials.
+
+## Known gaps (not fixed)
+- Cost tables use two unlabeled Now/After column pairs in places.
+- Options page cold start can take several seconds on a fresh serverless instance.
+- A new child without the "SSN not issued" box is stored as on file without an SSN field.
+
 ## Next action
-Integrate the verifier's findings, fix defects, second visual review, reset scenarios.
+Reset the three scenarios before the demo (operator → Demo controls → Reset this scenario).
