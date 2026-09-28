@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+  Niural design tokens (DESIGN.md). One place for every color, radius and shadow;
+  components use the semantic Tailwind names below, never raw hex values.
+  Font: Inter — provisional match for the Niural app (matches Niural's website).
+*/
+:root {
+  --primary: #714dff;
+  --primary-strong: #5226ff;
+  --primary-soft: #e3ddff;
+  --tint-1: #a080ff;
+  --tint-2: #bca6ff;
+  --tint-3: #d5c9ff;
+  --tint-4: #f1ecff;
+  --backdrop: #a78bff;
+  --accent-pink: #e151ff;
+
+  --text: #141417;
+  --text-secondary: rgba(14, 11, 11, 0.65);
+  --text-muted: #615e6e;
+  --surface: #ffffff;
+  --canvas: #fafafa;
+  --fill: #f4f4f5;
+  --segment: #ebebeb;
+  --border: #e5e7eb;
+  --divider: #e3e3e3;
+
+  --success: #00c950;
+  --success-text: #1f7a4d;
+  --success-soft: #e9f9ef;
+  --info: #3f85f5;
+  --info-soft: #eef4fe;
+  --warning: #f0b100;
+  --warning-soft: #fef9c2;
+  --warning-text: #8a5300;
+  --danger: #f51023;
+  --danger-text: #c8102e;
+  --danger-soft: #feebec;
+
+  --sidebar-top: #e5deff;
+  --sidebar-mid: #f1efff;
+  --sidebar-pill-border: #e1daff;
+}
+
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-strong: var(--primary-strong);
+  --color-primary-soft: var(--primary-soft);
+  --color-tint-1: var(--tint-1);
+  --color-tint-2: var(--tint-2);
+  --color-tint-3: var(--tint-3);
+  --color-tint-4: var(--tint-4);
+  --color-backdrop: var(--backdrop);
+  --color-accent-pink: var(--accent-pink);
+  --color-ink: var(--text);
+  --color-ink-2: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-surface: var(--surface);
+  --color-canvas: var(--canvas);
+  --color-fill: var(--fill);
+  --color-segment: var(--segment);
+  --color-line: var(--border);
+  --color-divider: var(--divider);
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-soft: var(--success-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-text: var(--warning-text);
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-danger-soft: var(--danger-soft);
+  --color-sidebar-pill: var(--sidebar-pill-border);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-workspace: 16px;
+
+  --shadow-base: 0 0 0 1px #00000014, 0 1px 2px #0000001f;
+  --shadow-flyout: 0 0 0 1px #00000014, 0 4px 8px #00000014, 0 8px 16px #00000014;
+  --shadow-modal: 0 0 0 1px #00000014, 0 4px 8px #00000014, 0 8px 16px #00000014, 0 16px 32px #00000014;
+}
+
+html {
+  color: var(--text);
+  background: var(--surface);
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+}
+::selection {
+  background: var(--tint-3);
+  color: var(--text);
+}
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+input,
+textarea,
+select {
+  caret-color: var(--primary);
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+.sidebar-gradient {
+  background: linear-gradient(180deg, var(--sidebar-top) 0%, var(--sidebar-mid) 45%, #ffffff 100%);
+}
+* {
+  scrollbar-color: var(--tint-3) transparent;
+  scrollbar-width: thin;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.animate-sheet-in {
+  animation: sheet-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.animate-toast-in {
+  animation: toast-in 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
