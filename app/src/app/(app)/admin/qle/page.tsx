@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/primitives";
 import { requireSession } from "@/server/guard";
 import { hrQueueView, type QueueTab } from "@/server/views";
+import { AiMatchPill, BulkApprove } from "@/components/hr/BulkApprove";
 
 const TABS: { id: QueueTab | "all"; label: string }[] = [
   { id: "action", label: "Needs my action" },
@@ -39,6 +40,9 @@ export default async function QueuePage({
   const v = await hrQueueView(user, scenarioId);
   const rows =
     tab === "all" ? v.rows : v.rows.filter((r) => r.tabs.includes(tab));
+  const ready = v.rows
+    .filter((r) => r.readyToApprove)
+    .map((r) => ({ id: r.id, caseNumber: r.caseNumber, employeeName: r.employeeName, event: r.event }));
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
@@ -69,7 +73,12 @@ export default async function QueuePage({
           );
         })}
       </nav>
-      <Section title={TABS.find((t) => t.id === tab)!.label} bodyClassName="">
+      <Section
+        title={TABS.find((t) => t.id === tab)!.label}
+        description={ready.length ? `${ready.length} case${ready.length === 1 ? " is" : "s are"} at AI match 100% with every check passed.` : undefined}
+        actions={<BulkApprove ready={ready} />}
+        bodyClassName=""
+      >
         {rows.length === 0 ? (
           <EmptyState icon={<Inbox />} title="Nothing here right now">
             New requests and issues appear in this queue as soon as they need
@@ -82,6 +91,7 @@ export default async function QueuePage({
                 <Th>Case</Th>
                 <Th>Employee</Th>
                 <Th>Event</Th>
+                <Th>AI match</Th>
                 <Th>Risk</Th>
                 <Th align="right">Age</Th>
                 <Th>Owner</Th>
@@ -101,11 +111,14 @@ export default async function QueuePage({
                       {r.caseNumber}
                     </Link>
                     {r.background ? (
-                      <p className="text-[11px] text-muted">Background case</p>
+                      <p className="text-[11px] text-muted">{r.aiMatch !== null ? "Sample case" : "Background case"}</p>
                     ) : null}
                   </Td>
                   <Td>{r.employeeName}</Td>
                   <Td>{r.event}</Td>
+                  <Td>
+                    <AiMatchPill score={r.aiMatch} />
+                  </Td>
                   <Td>
                     <StatusPill
                       tone={
@@ -144,8 +157,8 @@ export default async function QueuePage({
             {rows.length} case{rows.length === 1 ? "" : "s"} in this view
           </span>
           <span>
-            Background cases are seeded context, separate from the live
-            scenario.
+            Background and sample cases are seeded context. Approving a sample
+            case records the decision only; carrier and payroll are not simulated.
           </span>
         </TableFooter>
       </Section>

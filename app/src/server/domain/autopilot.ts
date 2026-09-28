@@ -1,5 +1,5 @@
 import type { Command } from "@/lib/contracts/commands";
-import type { DemoUser, QleCase } from "@/lib/contracts/domain";
+import type { DemoUser, QleCase, ScenarioState } from "@/lib/contracts/domain";
 import { NEXA, PARTNER_ID, userById } from "@/server/config/identities";
 import type { Ctx } from "./ctx";
 import { blockingOpen } from "./evaluate";
@@ -34,15 +34,23 @@ function run(ctx: Ctx, actor: DemoUser, cmd: AutoCommand): boolean {
 }
 
 /** A case qualifies when every check passed (or does not apply) and every document matched 100%. */
-function straightThrough(ctx: Ctx, c: QleCase): boolean {
+export function readyAt100(s: ScenarioState, c: QleCase): boolean {
   const ev = c.evaluation;
   if (!ev || c.background || c.approvals.length || c.specialistReview) return false;
   if (!["submitted", "under_review"].includes(c.status)) return false;
   if (!ev.proposedLines.length || blockingOpen(ev).length) return false;
   if (ev.checks.some((k) => (k.result === "needs_review" || k.result === "needs_information") && !k.resolvedBy)) return false;
-  const files = ctx.s.evidence.filter((e) => e.caseId === c.id && e.status !== "rejected");
+  const files = s.evidence.filter((e) => e.caseId === c.id && e.status !== "rejected");
   if (!files.length || !files.every((e) => e.reviewedBy === "ai_auto")) return false;
-  return !ctx.s.tasks.some((t) => t.caseId === c.id && t.kind === "information_request" && t.status === "open");
+  return !s.tasks.some((t) => t.caseId === c.id && t.kind === "information_request" && t.status === "open");
+}
+
+/** Case-level AI match: the lowest score across its documents; null when none was scored. */
+export function caseAiMatch(s: ScenarioState, c: QleCase): number | null {
+  if (c.background) return c.sampleAiMatch ?? null;
+  const files = s.evidence.filter((e) => e.caseId === c.id && e.status !== "rejected");
+  const scores = files.map((e) => e.confidence).filter((x): x is number => typeof x === "number");
+  return scores.length ? Math.min(...scores) : null;
 }
 
 export function runAutopilot(ctx: Ctx) {
@@ -55,7 +63,7 @@ export function runAutopilot(ctx: Ctx) {
     let progressed = false;
     // 1. Straight-through approval for clean cases.
     for (const c of s.cases) {
-      if (straightThrough(ctx, c)) progressed = run(ctx, RULES_ACTOR, { type: "hr.approve", caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo }) || progressed;
+      if (readyAt100(s, c)) progressed = run(ctx, RULES_ACTOR, { type: "hr.approve", caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo }) || progressed;
     }
     // 2. Send approved changes now instead of waiting for 10 p.m.
     if (s.txns.some((t) => t.delivery === "queued" && t.route === "edi_834" && !t.superseded)) progressed = run(ctx, ops, { type: "ops.runBatch" }) || progressed;

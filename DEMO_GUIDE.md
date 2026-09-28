@@ -45,6 +45,18 @@ Status after submit on a clean case: **Enrolled · pay update scheduled** (divor
 confirmed · pay update scheduled**). The case turns **Complete** once the paycheck with the new
 deduction posts: operator → Payroll → Post the run (or Advance to next payday).
 
+## Wrong date on the form? Let the document fix it
+If Maya types a wrong date (say Sep 23) and uploads the right document (Sep 15), the AI flags the
+difference at 60%. She clicks **Use the document's date**: the form is corrected, the AI match
+goes to **100%**, the document is verified automatically, and after Submit the case runs straight
+through. If she keeps her own date instead, the score stays below 100% and Daniel reviews it.
+
+## Daniel's queue: approve all 100% cases at once
+Life events shows an **AI match** column. **Approve all ready (N)** approves every case at 100%
+with every check passed, in one confirmed step. Cases below 100% (for example Chris Wong, 60%,
+date difference) stay in the queue for review. Sample cases (Priya Nair, Tom Becker, Lena Park,
+Chris Wong) are seeded queue examples: approving one records the decision only.
+
 ## Main walkthrough (autopilot on, about 3 minutes per flow)
 1. **Maya** (Birth scenario): Benefits → Report a life event → Birth. Add Ava Shah, born
    2026-09-01. Documents step → Demo documents → download the happy-path hospital record and

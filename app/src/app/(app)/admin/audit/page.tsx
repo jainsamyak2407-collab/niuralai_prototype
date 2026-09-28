@@ -223,7 +223,7 @@ export default async function AdminAuditPage({
       {tab === "ai" ? (
         <Section
           title="AI activity"
-          description="Deterministic rule and reconciliation work is labeled separately from model output. No confidence scores are shown."
+          description="Deterministic rule and reconciliation work is labeled separately from model output. The AI match score is a deterministic prototype rule, not a number from the model."
           bodyClassName=""
         >
           {v.ai.length === 0 ? (

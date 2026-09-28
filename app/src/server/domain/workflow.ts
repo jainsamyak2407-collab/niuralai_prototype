@@ -22,7 +22,8 @@ import {
   runBatch,
 } from "./execution";
 import { advanceClock, runDueJobs } from "./jobs";
-import { RULES_ACTOR, runAutopilot } from "./autopilot";
+import { readyAt100, RULES_ACTOR, runAutopilot } from "./autopilot";
+import { rescoreAfterConfirm } from "@/server/ai/confidence";
 
 const ROLE_FOR: Record<string, Role[]> = {
   case: ["employee"],
@@ -209,10 +210,12 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       if (f.proposedFacts.every((p) => p.confirmed || !p.conflictWith) && f.status === "needs_confirmation" && f.proposedFacts.filter((p) => ["eventDate", "coverageEndDate", "personName"].includes(p.field)).every((p) => p.confirmed)) {
         f.status = "accepted_for_review";
       }
-      aiLog(ctx, { caseId: c.id, kind: "facts_confirmed", label: "Fact confirmed", detail: `${fact.label}: ${value} (${cmd.choice === "document" ? "document value" : cmd.choice === "form" ? "form value" : "entered value"}).`, model: null });
+      const verified = rescoreAfterConfirm(f, now(ctx));
+      aiLog(ctx, { caseId: c.id, kind: "facts_confirmed", label: verified ? "AI match 100%" : "Fact confirmed", detail: `${fact.label}: ${value} (${cmd.choice === "document" ? "document value" : cmd.choice === "form" ? "form value" : "entered value"}).${verified ? " The form now matches the document; verified automatically." : ""}`, model: null });
+      if (verified) audit(ctx, { caseId: c.id, type: "evidence.auto_verified", summary: `${f.fileName}: form corrected to the document's value; AI match 100%, verified automatically.`, employeeSummary: "Your document now matches your form. Verified automatically." });
       touch(ctx, c);
       reevaluate(ctx, c);
-      return ok(c, "Confirmed.");
+      return ok(c, verified ? "Confirmed. Your form now matches the document: AI match 100%, verified automatically." : "Confirmed.");
     }
     case "case.markEvidencePending": {
       const c = ownCase(ctx, cmd.caseId);
@@ -461,6 +464,38 @@ function executeOne(ctx: Ctx, cmd: Command): CommandResult {
       notify(ctx, { key: `approved:${c.id}:${approval.id}`, userId: EMPLOYEE_ID, subject: `${c.caseNumber}: approved`, preview: auto ? "Every check passed, so your request was approved automatically. We'll confirm the result with the insurance provider." : "HR approved your request. We'll send it to the insurance provider and confirm the result.", caseId: c.id, eventType: "decision" });
       if (auto) notify(ctx, { key: `autoapproved:${c.id}`, userId: HR_ID, subject: `${c.caseNumber}: approved automatically`, preview: "Straight-through: every check passed and the document matched 100%. Open the case to review or correct.", caseId: c.id, eventType: "decision" });
       return ok(c, "Approved. Carrier changes queued; coverage is not confirmed until the carrier record matches.");
+    }
+    case "hr.bulkApprove": {
+      const approved: string[] = [];
+      const skipped: string[] = [];
+      for (const id of [...new Set(cmd.caseIds)]) {
+        const c = s.cases.find((x) => x.id === id && x.employerId === ctx.actor.employerId);
+        if (!c) continue;
+        if (c.background) {
+          // Sample queue case: the decision is recorded; carrier and payroll are not simulated for it.
+          if (c.sampleAiMatch === 100 && ["submitted", "under_review"].includes(c.status)) {
+            c.status = "approved";
+            touch(ctx, c);
+            closeTasks(ctx, (t) => t.caseId === c.id, "Approved in bulk.");
+            audit(ctx, { caseId: c.id, type: "case.approved_bulk", summary: `Approved in bulk by ${ctx.actor.name} (AI match 100%). Sample queue case: carrier and payroll are not simulated.` });
+            approved.push(c.caseNumber);
+          } else skipped.push(c.caseNumber);
+          continue;
+        }
+        if (!readyAt100(s, c)) {
+          skipped.push(c.caseNumber);
+          continue;
+        }
+        try {
+          execute({ ...ctx, nested: true }, { type: "hr.approve", idempotencyKey: `${cmd.idempotencyKey}:${c.id}`, caseId: c.id, expectedVersion: c.version, revisionNo: c.revisions.at(-1)!.revisionNo });
+          approved.push(c.caseNumber);
+        } catch {
+          skipped.push(c.caseNumber);
+        }
+      }
+      if (!approved.length) throw new DomainError(422, "none_ready", "No selected case is at AI match 100% with every check passed. Open each case to review it.");
+      audit(ctx, { caseId: null, type: "hr.bulk_approved", summary: `Bulk approval by ${ctx.actor.name}: ${approved.join(", ")}.${skipped.length ? ` Left for review: ${skipped.join(", ")}.` : ""}` });
+      return { ok: true, message: `Approved ${approved.length} case${approved.length === 1 ? "" : "s"} at AI match 100%.${skipped.length ? ` ${skipped.length} left for review.` : ""}` };
     }
     case "hr.decide": {
       const c = ownCase(ctx, cmd.caseId);

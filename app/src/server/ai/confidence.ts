@@ -1,5 +1,5 @@
 import type { Extraction } from "@/lib/contracts/ai";
-import type { ProposedFact, QleCase, ScenarioState } from "@/lib/contracts/domain";
+import type { EvidenceFile, ProposedFact, QleCase, ScenarioState } from "@/lib/contracts/domain";
 import { fmtDateLong, isValidDate } from "@/lib/dates";
 import { personName } from "@/server/domain/evaluate";
 
@@ -53,4 +53,38 @@ export function scoreDocument(s: ScenarioState, c: QleCase, mode: "model" | "fix
     return { score, summary: `All key facts match the form and Nexa's rules${what ? `: ${what}` : ""}. Verified automatically.`, issues };
   }
   return { score, summary: `${issues.length} item${issues.length === 1 ? "" : "s"} need${issues.length === 1 ? "s" : ""} attention: ${issues.join(" ")}`, issues };
+}
+
+/**
+ * Re-score after the employee resolves a conflict. Choosing the document's value makes the
+ * form match the document, so that difference no longer counts against the match. Keeping
+ * the form's value against the document keeps the difference, and HR reviews it.
+ * Returns true when the document is now verified automatically (100%).
+ */
+export function rescoreAfterConfirm(f: EvidenceFile, at: string): boolean {
+  if (typeof f.confidence !== "number") return false;
+  f.confidenceAtRead ??= f.confidence;
+  const conflicts = f.proposedFacts.filter((p) => p.conflictWith);
+  const matchesDoc = (p: ProposedFact) => !!p.confirmed && (p.confirmed.choice === "document" || p.confirmed.value === p.value);
+  const fixed = conflicts.filter(matchesDoc);
+  const open = conflicts.filter((p) => !p.confirmed);
+  const kept = conflicts.filter((p) => p.confirmed && !matchesDoc(p));
+  const score = Math.min(100, f.confidenceAtRead + 40 * fixed.length);
+  const show = (p: ProposedFact) => `${p.label.toLowerCase()} ${isValidDate(p.value) ? fmtDateLong(p.value, true) : p.value}`;
+  if (score === 100 && !open.length && !kept.length) {
+    f.confidence = 100;
+    f.confidenceSummary = `Form corrected to match the document (${fixed.map(show).join("; ")}). All key facts now match the form and Nexa's rules. Verified automatically.`;
+    f.status = "accepted_for_review";
+    f.reviewedBy = "ai_auto";
+    f.reviewedAt = at;
+    for (const p of f.proposedFacts) if (!p.confirmed) p.confirmed = { choice: "document", value: p.value, by: "ai_auto", at };
+    return true;
+  }
+  f.confidence = score;
+  f.confidenceSummary = kept.length
+    ? `The form keeps a different value than the document (document shows ${kept.map(show).join("; ")}). HR reviews this difference.`
+    : open.length
+      ? `${open.length} difference${open.length === 1 ? "" : "s"} still to resolve: ${open.map(show).join("; ")}.`
+      : (f.confidenceSummary ?? "");
+  return false;
 }

@@ -1,3 +1,4 @@
+import { caseAiMatch, readyAt100 } from "@/server/domain/autopilot";
 import type {
   AuditEvent,
   Benefit,
@@ -150,6 +151,7 @@ export function statusLabel(s: ScenarioState, c: QleCase): { label: string; tone
   if (c.status === "draft") return { label: "Draft", tone: "gray" };
   if (c.status === "declined") return { label: "Declined", tone: "red" };
   if (c.status === "withdrawn") return { label: "Withdrawn", tone: "gray" };
+  if (c.background && c.status === "approved") return { label: "Approved · sample case", tone: "green" };
   if (c.status === "needs_information") return { label: "Waiting for employee", tone: "amber" };
   if (c.status !== "approved") return { label: c.specialistReview ? "Specialist review" : "HR review", tone: "blue" };
   const e = executionSummary(s, c);
@@ -395,6 +397,8 @@ export async function hrQueueView(user: DemoUser, scenario: ScenarioId) {
       tabs,
       completed: !!c.completedAt,
       terminal: ["declined", "withdrawn"].includes(c.status),
+      aiMatch: caseAiMatch(s, c),
+      readyToApprove: c.background ? c.sampleAiMatch === 100 && ["submitted", "under_review"].includes(c.status) : readyAt100(s, c),
     };
   });
   const order = { high: 0, medium: 1, low: 2 };

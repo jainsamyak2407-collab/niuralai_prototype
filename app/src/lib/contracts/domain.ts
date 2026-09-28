@@ -273,6 +273,7 @@ export interface QleCase {
   employeeId: string; // person id of the employee
   employeeName: string;
   background: boolean; // seeded queue context, separate from the live scenario
+  sampleAiMatch?: number | null; // background sample cases only: seeded AI match for the queue
   eventCode: EventCode;
   status: RequestStatus;
   version: number; // concurrency token, bumps on every change
@@ -329,6 +330,7 @@ export interface EvidenceFile {
   reviewedBy?: string; // "ai_auto" when verified automatically at 100% match
   reviewedAt?: ISOTime;
   confidence?: number | null; // prototype match-confidence rule, not a model number
+  confidenceAtRead?: number | null; // score when first read, before any fact was confirmed
   confidenceSummary?: string;
   rejectionReason?: string;
 }

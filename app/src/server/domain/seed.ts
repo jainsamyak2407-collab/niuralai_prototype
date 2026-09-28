@@ -132,6 +132,16 @@ function backgroundCases(scenario: ScenarioId, clockIso: string): { cases: QleCa
     bgCase(2, scenario, { employeeName: "Sam Ortiz", eventCode: "medicaid_chip_loss", status: "needs_information", facts: { eventDate: "2026-08-30" } }, day(96)),
     bgCase(3, scenario, { employeeName: "Wei Chen", eventCode: "dependent_age_off", status: "under_review", facts: { eventDate: "2026-12-04" } }, day(20)),
   ];
+  // Sample queue cases with a seeded AI match, so HR can show bulk approval of 100% cases.
+  const samples: [string, QleCase["eventCode"], string, number, string][] = [
+    ["Priya Nair", "birth", "2026-09-08", 100, "Birth certificate matches the form: child born Sep 8, 2026."],
+    ["Tom Becker", "adoption", "2026-09-02", 100, "Placement letter matches the form: placement Sep 2, 2026."],
+    ["Lena Park", "loss_of_other_coverage", "2026-09-30", 100, "Coverage-end notice names Lena Park; coverage ends Sep 30, 2026."],
+    ["Chris Wong", "divorce", "2026-09-10", 60, "Decree shows Sep 18, 2026; the form shows Sep 10, 2026. Needs review."],
+  ];
+  samples.forEach(([name, code, date, match], i) => {
+    cases.push(bgCase(5 + i, scenario, { employeeName: name, eventCode: code, status: "under_review", facts: { eventDate: date }, sampleAiMatch: match }, day(6 + i * 3)));
+  });
   for (const c of cases) c.receipt!.caseNumber = c.caseNumber;
   // A case belonging to a different employer on the same platform — never visible to Nexa HR.
   const orbit = bgCase(4, scenario, { employeeName: "Alex Rivera", eventCode: "birth", status: "under_review", employerId: ORBIT.id, facts: { eventDate: "2026-09-10" } }, day(30));
@@ -155,6 +165,11 @@ function backgroundCases(scenario: ScenarioId, clockIso: string): { cases: QleCa
     mk(cases[2], { kind: "specialist_review", title: "Age-limit review (seeded P1 example)", reason: "Dependent reaches the plan age limit. No automatic removal at 26.", nextAction: "Confirm plan end date and disability-extension question" }, 70),
     mk(orbit, { kind: "hr_review", title: "Review birth request", reason: "Orbit Labs case", nextAction: "Orbit Labs HR review" }, 24, "u_orbit_hr"),
   ];
+  samples.forEach(([, code, , match, why], i) => {
+    const c = cases[3 + i];
+    tasks.push(mk(c, { kind: "hr_review", title: match === 100 ? "Ready to approve · AI match 100%" : `Review document · AI match ${match}%`, reason: why, nextAction: match === 100 ? "Approve (bulk approval available in the queue)" : "Open the document and resolve the date difference", blocking: match !== 100 }, 30 + i * 6));
+    void code;
+  });
   tasks[1].ownerId = "u_bg_employee";
   const people: Person[] = [];
   return { cases, tasks, people };

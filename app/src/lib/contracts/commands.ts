@@ -146,6 +146,7 @@ export const command = z.discriminatedUnion("type", [
     reviewer: z.string().trim().min(3).max(120),
   }),
   z.object({ type: z.literal("hr.approve"), ...base, ...caseRef, revisionNo: z.number().int().positive() }),
+  z.object({ type: z.literal("hr.bulkApprove"), ...base, caseIds: z.array(z.string()).min(1).max(50) }),
   z.object({
     type: z.literal("hr.decide"),
     ...base,

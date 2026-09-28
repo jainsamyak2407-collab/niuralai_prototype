@@ -79,8 +79,8 @@ export function TimelineSection({ v }: { v: HrCaseView }) {
         <div>
           <h3 className="text-sm font-medium text-ink">AI activity</h3>
           <p className="mt-0.5 text-xs text-muted">
-            What was deterministic and what a model proposed. No confidence
-            scores are shown; models do not produce calibrated ones.
+            What was deterministic and what a model proposed. The AI match score
+            is a deterministic prototype rule, not a number from the model.
           </p>
           {v.ai.length === 0 ? (
             <p className="mt-3 text-[13px] text-muted">
