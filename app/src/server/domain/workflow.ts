@@ -21,7 +21,7 @@ import {
   refreshCompletion,
   runBatch,
 } from "./execution";
-import { advanceClock } from "./jobs";
+import { advanceClock, runDueJobs } from "./jobs";
 
 const ROLE_FOR: Record<string, Role[]> = {
   case: ["employee"],
@@ -774,6 +774,19 @@ export function execute(ctx: Ctx, cmd: Command): CommandResult {
       return { ok: true, message: "Instruction accepted. It posts when the target run posts." };
     }
     case "ops.payrollPost": {
+      const run = s.payRuns.find((r) => r.id === cmd.runId);
+      const at = run ? zonedToUtc(run.payday, "09:00") : null;
+      if (run && at && run.status === "scheduled" && s.clock.businessNow < at) {
+        // A run posts on its payday: move the business clock there first, running any
+        // batches, earlier pay runs and reminders that fall due on the way.
+        const justBefore = new Date(new Date(at).getTime() - 60_000).toISOString();
+        const jobs = runDueJobs(ctx, s.clock.businessNow, justBefore);
+        s.clock.businessNow = justBefore;
+        postRun(ctx, cmd.runId, cmd.override);
+        s.clock.businessNow = at;
+        audit(ctx, { caseId: null, type: "demo.clock", summary: `Demo clock moved to the ${fmtDateLong(run.payday, true)} payday to post the run. ${jobs.length ? `Jobs on the way: ${jobs.join(" ")}` : ""}` });
+        return { ok: true, message: `Clock moved to ${fmtDateLong(run.payday, true)} and the pay run posted.${jobs.length ? ` Also ran: ${jobs.join(" ")}` : ""}` };
+      }
       postRun(ctx, cmd.runId, cmd.override);
       return { ok: true, message: "Pay run posted." };
     }

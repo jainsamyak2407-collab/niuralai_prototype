@@ -186,7 +186,7 @@ export function AccountMenu({ name, email, title, role }: { name: string; email:
   const [open, setOpen] = useState(false);
   const router = useRouter();
   const ref = useOutside(open, () => setOpen(false));
-  const initials = name.split(" ").map((p) => p[0]).slice(0, 2).join("");
+  const initials = name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
   async function signOut() {
     await fetch("/api/session/demo", { method: "DELETE" });
     router.push("/");

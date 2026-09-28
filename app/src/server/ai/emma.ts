@@ -8,7 +8,7 @@ import { AI_MAX_RETRIES, AI_TIMEOUT_MS, aiModel, FAILURE_TEXT, FAST, failureKind
 
 // Emma: grounded answers from the knowledge pack plus the user's own scoped case facts.
 // The model output is schema-validated, then post-validated: citations must come from the
-// retrieved set, and every dollar amount and date must appear in those sources.
+// retrieved set, and every dollar amount and date must appear in the provided sources.
 
 export const CANNOT_CONFIRM = "I cannot confirm that from the available documents.";
 const FALLBACK_NOTE = "AI unavailable. Showing matching policy text.";
@@ -116,8 +116,11 @@ export async function askEmma(user: DemoUser, scenario: ScenarioId, req: { quest
   const scoped = [...knowledgePack(), ...ctx.chunks];
   const top = retrieve(req.question, scoped, { employerId: user.employerId, today: ctx.today, limit: 6 }).map((s) => s.chunk);
   // Always give the model the status of the case in view when the user may see it.
-  const statusChunk = ctx.chunks.find((c) => c.id.endsWith(":status"));
-  if (statusChunk && !top.includes(statusChunk)) top.push(statusChunk);
+  // Include its dates and cost estimate too, so Emma can explain the numbers on the page.
+  for (const suffix of [":status", ":timing", ":costs"]) {
+    const c = ctx.chunks.find((x) => x.id.endsWith(suffix));
+    if (c && !top.includes(c)) top.push(c);
+  }
 
   if (OTHERS.test(req.question) && user.role !== "hr_admin") {
     return { result: { ok: true, mode: "fallback", model: null, response: refusal(user, links), message: "Privacy rule: Emma only uses your own records and Nexa's approved documents." }, caseId: ctx.caseId, logKind: "emma_answer", logDetail: "Declined a request for other people's records (privacy rule, no model call)." };
@@ -163,8 +166,8 @@ export async function askEmma(user: DemoUser, scenario: ScenarioId, req: { quest
       .map((a) => (a.type === "ask_hr_review" && !a.href ? { ...a, href: reviewAction(user, links).href } : a))
       .filter((a) => a.type !== "open_page" || a.href)
       .slice(0, 3);
-    const citedChunks = top.filter((c) => refs.some((x) => sameRef(x, c)));
-    const bad = unsupportedClaims(r.answer, citedChunks.length ? citedChunks : top);
+    // Every amount and date must appear in the sources Emma was given; the answer must also cite at least one.
+    const bad = unsupportedClaims(r.answer, top);
     const claimsSomething = amountsIn(r.answer).size > 0 || datesIn(r.answer).size > 0;
     let response: EmmaResponse;
     let detail: string;

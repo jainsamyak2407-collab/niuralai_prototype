@@ -210,4 +210,11 @@ describe("edge cases", () => {
     expect(c.approvals[0]).toEqual(before);
     expect(s.tasks.some((t) => t.caseId === id && t.title === "Rule or rate version changed")).toBe(true);
   });
+
+  it("posting a future pay run moves the business clock to that payday first", async () => {
+    await ok("u_ops", "birth", { type: "ops.payrollPost", runId: "run_2026-10-15" });
+    const s = await state("birth");
+    expect(s.clock.businessNow).toBe("2026-10-15T13:00:00.000Z");
+    expect(s.payRuns.filter((r) => ["run_2026-09-30", "run_2026-10-15"].includes(r.id)).every((r) => r.status === "posted")).toBe(true);
+  });
 });

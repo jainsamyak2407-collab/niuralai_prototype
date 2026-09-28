@@ -278,8 +278,14 @@ function applyToRoster(ctx: Ctx, txn: CarrierTxn, obs: CarrierObservation) {
     return;
   }
   if (txn.order.action === "tier_change" && active && obs.startDate && obs.startDate > active.startDate) {
-    active.endDate = addDays(obs.startDate, -1);
-    s.roster.push({ id: nextId(s, "cov"), ...base, startDate: obs.startDate, endDate: obs.endDate });
+    // The coverage level is the household's: every active member on this benefit moves with it.
+    const start = obs.startDate;
+    const leaving = new Set(s.txns.filter((t) => t.caseId === txn.caseId && t.order.action === "terminate").map((t) => t.order.personId));
+    const household = s.roster.filter((r) => r.benefit === obs.benefit && r.carrierId === txn.carrierId && r.endDate === null && r.id !== active.id && r.startDate < start && !leaving.has(r.personId));
+    for (const r of [active, ...household]) {
+      r.endDate = addDays(start, -1);
+      s.roster.push({ ...r, id: nextId(s, "cov"), tier: obs.tier, startDate: start, endDate: null, sourceRef: obs.sourceRef, observedAt: obs.observedAt, planId: r.personId === active.personId ? obs.planId : r.planId });
+    }
     return;
   }
   if (active) {

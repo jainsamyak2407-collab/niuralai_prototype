@@ -47,7 +47,7 @@ export function tierFor(covered: string[], people: Person[]): Tier {
 export function personName(s: ScenarioState, id: string, c?: QleCase): string {
   const p = s.people.find((x) => x.id === id);
   if (p) return `${p.firstName} ${p.lastName}`.trim();
-  const ch = c?.facts.children?.find((x) => x.personId === id);
+  const ch = (c ? [c] : s.cases).flatMap((x) => x.facts.children ?? []).find((x) => x.personId === id);
   if (ch) return `${ch.firstName || "New child"} ${ch.lastName}`.trim();
   return "Unknown person";
 }

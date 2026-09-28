@@ -277,6 +277,23 @@ export default async function HrCasePage({
             </Banner>
           </div>
         )
+      ) : c.status === "approved" && c.activeApproval && v.lines.some((l) => l.coverageState === "mismatch" || l.memberResult === "rejected") ? (
+        <Banner
+          tone="error"
+          className="mb-4"
+          title="Provider issue: a carrier result does not match the approved change"
+          action={
+            <a href="#coverage" className="text-sm text-primary hover:underline">
+              Go to delivery
+            </a>
+          }
+        >
+          {v.lines
+            .filter((l) => l.coverageState === "mismatch" || l.memberResult === "rejected")
+            .map((l) => l.mismatch?.message ?? `${l.person} (${l.benefit}): ${l.memberReason ?? "record rejected by the carrier"}`)
+            .join(" ")}{" "}
+          Other lines stay as they are. Approved revision {c.activeApproval.revisionNo} is unchanged.
+        </Banner>
       ) : c.status === "approved" && c.activeApproval ? (
         <Banner
           className="mb-4"

@@ -103,12 +103,10 @@ export default async function BenefitsPage() {
                 <tr key={e.id}>
                   <Td>{benefitLabel[e.benefit]}</Td>
                   <Td>{e.planName}</Td>
-                  <Td>
-                    <StatusPill tone="blue">Confirmed from {fmtDateLong(e.effectiveFrom)}</StatusPill>
-                  </Td>
+                  <Td>{e.tierLabel}</Td>
                   <Td>{e.covered.join(", ")}</Td>
                   <Td>
-                    <DateText date={e.effectiveFrom} />
+                    <StatusPill tone="blue">Confirmed from {fmtDateLong(e.effectiveFrom)}</StatusPill>
                   </Td>
                   <Td align="right">
                     <Money cents={e.employeeCents} />
